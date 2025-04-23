@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import Timeline, { TimelineItem } from './components/Timeline';
+import Timeline, { TimelineItem, Document } from './components/Timeline';
 import Graph, { GraphNode, GraphEdge } from './components/Graph';
 import ChatBox, { ChatBoxHandle } from './components/ChatBox';
 import Calendar, { AppointmentEvent } from './components/Calendar';
@@ -8,26 +8,84 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContai
 import { format } from 'date-fns';
 import AppointmentSummary from './components/AppointmentSummary.tsx';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import EventForm from './components/EventForm';
+import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram } from 'react-icons/fa'; // Example icons
 
 // Környezeti változók beolvasása
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL; // Chat üzenetek kezelése
-const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Hardkódolt webhook URL
+// const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Hardkódolt webhook URL
+const CHAT_WEBHOOK_URL = 'https://n8n-tc2m.onrender.com/webhook/webhook'; // PRODUCTION Webhook URL
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || ''; // Backend API base URL
 
 // Kovács Julianna (RA) adatai - FRISSÍTVE
 const patientEvents: TimelineItem[] = [
-  { id: 'ev1', content: 'Első Vizsgálat és Diagnózis', start: new Date('2014-09-24') },
-  { id: 'ev2', content: 'Kontroll Vizsgálat (Javulás)', start: new Date('2015-03-24') },
-  { id: 'ev3', content: 'Kontroll Vizsgálat (Remisszió közeli)', start: new Date('2015-09-21') },
-  { id: 'ev4', content: 'Fellángolás', start: new Date('2016-04-07') },
-  { id: 'ev5', content: 'Első Biológiai Terápia Indítása (Adalimumab)', start: new Date('2016-07-09') },
-  { id: 'ev6', content: 'Kontroll Vizsgálat (Remisszió)', start: new Date('2017-03-06') },
-  { id: 'ev7', content: 'Fellángolás', start: new Date('2018-04-19') },
-  { id: 'ev8', content: 'Kontroll Vizsgálat (Stabilizálódás)', start: new Date('2018-10-25') },
-  { id: 'ev9', content: 'Fellángolás / Második Biológiai Terápia', start: new Date('2019-04-16') },
-  { id: 'ev10', content: 'Kontroll Vizsgálat (Enyhe javulás)', start: new Date('2019-10-17') },
-  { id: 'ev11', content: 'Kontroll Vizsgálat / Progresszió', start: new Date('2020-04-23') }
+  { 
+    id: 'ev1', 
+    content: 'Első Vizsgálat és Diagnózis', 
+    start: new Date('2014-09-24'),
+    documents: [{ id: 'doc_ev1_1', title: 'Kórlap 2014-09-24', url: 'kj_korlap_2014_09_24.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev2', 
+    content: 'Kontroll Vizsgálat (Javulás)', 
+    start: new Date('2015-03-24'),
+    documents: [{ id: 'doc_ev2_1', title: 'Kórlap 2015-03-24', url: 'kj_korlap_2015_03_24.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev3', 
+    content: 'Kontroll Vizsgálat (Remisszió közeli)', 
+    start: new Date('2015-09-21'),
+    documents: [{ id: 'doc_ev3_1', title: 'Kórlap 2015-09-21', url: 'kj_korlap_2015_09_21.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev4', 
+    content: 'Fellángolás', 
+    start: new Date('2016-04-07'),
+    documents: [{ id: 'doc_ev4_1', title: 'Kórlap 2016-04-07', url: 'kj_korlap_2016_04_07.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev5', 
+    content: 'Első Biológiai Terápia Indítása (Adalimumab)', 
+    start: new Date('2016-07-09'),
+    documents: [{ id: 'doc_ev5_1', title: 'Kórlap 2016-07-09', url: 'kj_korlap_2016_07_09.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev6', 
+    content: 'Kontroll Vizsgálat (Remisszió)', 
+    start: new Date('2017-03-06'),
+    documents: [{ id: 'doc_ev6_1', title: 'Kórlap 2017-03-06', url: 'kj_korlap_2017_03_06.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev7', 
+    content: 'Fellángolás', 
+    start: new Date('2018-04-19'),
+    documents: [{ id: 'doc_ev7_1', title: 'Kórlap 2018-04-19', url: 'kj_korlap_2018_04_19.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev8', 
+    content: 'Kontroll Vizsgálat (Stabilizálódás)', 
+    start: new Date('2018-10-25'),
+    documents: [{ id: 'doc_ev8_1', title: 'Kórlap 2018-10-25', url: 'kj_korlap_2018_10_25.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev9', 
+    content: 'Fellángolás / Második Biológiai Terápia', 
+    start: new Date('2019-04-16'),
+    documents: [{ id: 'doc_ev9_1', title: 'Kórlap 2019-04-16', url: 'kj_korlap_2019_04_16.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev10', 
+    content: 'Kontroll Vizsgálat (Enyhe javulás)', 
+    start: new Date('2019-10-17'),
+    documents: [{ id: 'doc_ev10_1', title: 'Kórlap 2019-10-17', url: 'kj_korlap_2019_10_17.pdf', type: 'pdf' }]
+  },
+  { 
+    id: 'ev11', 
+    content: 'Kontroll Vizsgálat / Progresszió', 
+    start: new Date('2020-04-23'),
+    documents: [{ id: 'doc_ev11_1', title: 'Kórlap 2020-04-23', url: 'kj_korlap_2020_04_23.pdf', type: 'pdf' }]
+  }
 ];
 
 // Kovács Julianna (RA) gráf csomópontjai - FRISSÍTVE
@@ -207,6 +265,9 @@ const statusDescriptions = [
 const metricKeys = ['DAS28', 'CRP', 'Süllyedés (We)', 'Vérnyomás', 'Napi lépésszám', 'Állapot'] as const;
 type MetricKey = typeof metricKeys[number];
 
+// Define possible views for the main panel
+type MainPanelView = 'graph' | 'metric' | 'connections' | 'financing';
+
 const App: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -224,6 +285,9 @@ const App: React.FC = () => {
   const [currentSlot, setCurrentSlot] = useState<AppointmentEvent | null>(null);
   const [appointmentSummary, setAppointmentSummary] = useState<string>('');
   const [events, setEvents] = useState<TimelineItem[]>(patientEvents);
+  const [editingEvent, setEditingEvent] = useState<TimelineItem | null>(null);
+  // State to control the main panel view
+  const [mainPanelView, setMainPanelView] = useState<MainPanelView>('graph'); 
 
   // Példa userId, reason, patientHistory (ezeket érdemes később dinamikusan kezelni)
   const userId = 'kovacs_istvan';
@@ -251,6 +315,10 @@ const App: React.FC = () => {
       if (nodeId) {
         setSelectedNode(nodeId);
       }
+    }
+    if (itemId) {
+        setMainPanelView('graph'); // Switch back to graph view when an event is selected
+        setSelectedMetric(null); // Hide metric chart overlay
     }
   };
 
@@ -434,16 +502,45 @@ const App: React.FC = () => {
       callback("Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).");
       return;
     }
-    
-    // Add loading state or indicator if desired
+
     console.log('Üzenet küldése a webhookra:', CHAT_WEBHOOK_URL);
     try {
+      // Prepare context data based on the current view (metric or event/node)
+      let currentContext = {};
+      if (selectedMetric) {
+        // If a metric is selected, send metric context
+        const metricData = healthMetrics.find(m => m.title === selectedMetric);
+        currentContext = {
+          selectedMetric: metricData ? {
+            name: metricData.title,
+            value: metricData.value,
+            unit: metricData.unit,
+            status: metricData.status,
+            description: metricDescriptions[selectedMetric] // Get description
+          } : null,
+          selectedEvent: null, // Explicitly null when metric is focus
+          selectedNode: null   // Explicitly null when metric is focus
+        };
+      } else {
+        // Otherwise, send event/node context (if selected)
+        currentContext = {
+          selectedMetric: null,
+          selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
+          selectedNode: selectedNode ? patientNodes.find(n => n.id === selectedNode) : null
+        };
+      }
+
       const response = await fetch(CHAT_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: message }),
+        // Send structured body with message, timestamp, and the determined context
+        body: JSON.stringify({ 
+          message: message,
+          timestamp: Date.now(), 
+          context: currentContext
+        }),
       });
 
       if (!response.ok) {
@@ -453,8 +550,12 @@ const App: React.FC = () => {
       const result = await response.json();
       console.log('Webhook válasz:', result);
 
-      // Assuming the webhook response has a field containing the bot's reply
-      const reply = result.reply || result.message || "Nem érkezett érdemi válasz."; 
+      const reply = result.originalResponse || result.response || "Nem érkezett érdemi válasz."; 
+      
+      if (result.needsExpert !== undefined) {
+        console.log('Needs Expert Flag:', result.needsExpert);
+      }
+      
       callback(reply);
 
     } catch (error) {
@@ -651,34 +752,63 @@ const App: React.FC = () => {
   const currentStatus = currentMetricObj?.status || 'normal';
   const currentStatusObj = statusDescriptions.find(s => s.label.toLowerCase() === (currentStatus === 'normal' ? 'normál' : currentStatus === 'warning' ? 'figyelmeztető' : 'kritikus').toLowerCase());
 
+  // Function to open the edit form
+  const handleEditEvent = (item: TimelineItem) => {
+    console.log("Editing event:", item);
+    setEditingEvent(item);
+  };
+
+  // Function to handle adding a new event (passed to EventForm via Timeline -> App -> Timeline)
   const handleAddEvent = async (event: TimelineItem) => {
-    // Dokumentumok mentése a documents könyvtárba
-    const savedDocuments = await Promise.all(
-      (event.documents || []).map(async (doc) => {
-        // Itt implementálni kell a fájl mentés logikáját
-        // Egyelőre csak visszaadjuk a dokumentumot
-        return doc;
-      })
-    );
+    // --- Placeholder Document Upload --- 
+    // In a real app, upload new documents from event.documents here
+    // and update event.documents with backend URLs/IDs before saving.
+    // Currently, EventForm returns placeholder URLs.
+    console.log("Adding event (upload placeholder):", event);
+    // --- End Placeholder --- 
 
-    const newEvent = {
-      ...event,
-      documents: savedDocuments
-    };
+    setEvents(prevEvents => [...prevEvents, event]);
 
-    setEvents(prevEvents => [...prevEvents, newEvent]);
-
-    // Frissítjük a gráf csomópontokat és éleket is
-    const newNode: GraphNode = {
-      id: `event_${event.id}`,
-      label: event.content,
-      type: 'event',
-      timestamp: event.start
-    };
-
-    // Itt lehetne implementálni a gráf frissítését is
+    // Optionally update graph nodes/edges if needed
     // ...
   };
+
+  // Function to handle updating an existing event (passed directly to EventForm when editing)
+  const handleUpdateEvent = async (updatedEvent: TimelineItem) => {
+    // --- Placeholder Document Upload/Update --- 
+    // Similar to handleAddEvent, handle upload/deletion of documents here.
+    // The updatedEvent.documents likely contains a mix of existing and new file info.
+    console.log("Updating event (upload placeholder):", updatedEvent);
+    // --- End Placeholder --- 
+
+    setEvents(prevEvents =>
+      prevEvents.map(event => (event.id === updatedEvent.id ? updatedEvent : event))
+    );
+    setEditingEvent(null); // Close the edit form
+  };
+
+  const handleMetricSelect = (metric: MetricKey) => {
+    setSelectedMetric(metric);
+    setMainPanelView('metric'); // Show metric details in the main panel
+  }
+
+  // Function to handle switching the main panel view
+  const showDataConnections = () => {
+    setMainPanelView('connections');
+    setSelectedMetric(null); // Hide metric chart overlay
+  };
+
+  const showFinancingPlanner = () => {
+    setMainPanelView('financing');
+    setSelectedMetric(null); // Hide metric chart overlay
+  };
+
+  const showGraphView = () => {
+    setMainPanelView('graph');
+    setSelectedMetric(null); // Hide metric chart overlay
+    setSelectedEvent(null); // Deselect event if returning to general graph view
+    setSelectedNode(null);
+  }
 
   return (
     <div className="app-container">
@@ -692,7 +822,7 @@ const App: React.FC = () => {
       </div>
       <div className="metrics-container">
         {healthMetrics.map((metric, index) => (
-          <div key={index} className="metric-box" onClick={() => setSelectedMetric(metric.title as MetricKey)} style={{ cursor: 'pointer' }}>
+          <div key={index} className="metric-box" onClick={() => handleMetricSelect(metric.title as MetricKey)} style={{ cursor: 'pointer' }}>
             <div className="metric-icon">{metric.icon}</div>
             <div className="metric-title">{metric.title}</div>
             <div className="metric-value">
@@ -706,7 +836,7 @@ const App: React.FC = () => {
         ))}
       </div>
       <div className="timeline-container" style={{ marginBottom: 40, position: 'relative' }}>
-        {selectedMetric ? (
+        {selectedMetric && mainPanelView !== 'metric' ? (
           <div style={{ 
             position: 'absolute', 
             left: 15, 
@@ -720,7 +850,7 @@ const App: React.FC = () => {
             overflow: 'hidden', 
             zIndex: 2 
           }}>
-            <button className="button" style={{ position: 'absolute', right: 10, top: 10 }} onClick={() => setSelectedMetric(null)}>
+            <button className="button" style={{ position: 'absolute', right: 10, top: 10 }} onClick={showGraphView}>
               Vissza az eseményekhez
             </button>
             <h3 style={{ marginBottom: 10, textAlign: 'center', fontWeight: 600, fontSize: 20 }}>{selectedMetric} időbeli alakulása</h3>
@@ -749,149 +879,105 @@ const App: React.FC = () => {
             onSelect={handleTimelineSelect}
             onRangeChange={handleTimeRangeChange}
             onAddEvent={handleAddEvent}
+            onEditEvent={handleEditEvent}
           />
         )}
       </div>
       <div className="main-content">
         <div className="graph-container" style={{ position: 'relative' }}>
-          {showCalendar ? (
-            <div style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'white',
-              zIndex: 1000,
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <Calendar 
-                onBack={() => {
-                  setShowCalendar(false);
-                  setSuggestedSlots([]);
-                }}
-                suggestedSlots={suggestedSlots}
-                onSelectSlot={handleSlotSelect}
-              />
-            </div>
-          ) : showSummary && currentSlot ? (
-            <div style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'white',
-              zIndex: 1000,
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-              <AppointmentSummary
-                slot={currentSlot}
-                summary={appointmentSummary}
-                onConfirm={handleConfirmAppointment}
-                onCancel={() => {
-                  setShowSummary(false);
-                  setShowCalendar(true);
-                }}
-              />
-            </div>
-          ) : (
+          {mainPanelView === 'graph' && (
             <>
               <div className="graph-header">
-                {selectedMetric ? (
-                  <div style={{ background: '#e3eafc', textAlign: 'center', fontWeight: 700, fontSize: 22, marginBottom: 8, borderRadius: 8, padding: '10px 0' }}>
-                    Állapotjelzések magyarázata
-                  </div>
-                ) : (
-                  <>
-                    <h2 style={{ textAlign: 'center', fontWeight: 700, fontSize: 22, marginBottom: 8 }}>
-                      Betegségek és események kapcsolata
-                    </h2>
-                    {selectedEvent && (
-                      <button 
-                        className="button reset-view-button"
-                        onClick={() => {
-                          setSelectedEvent(null);
-                          setSelectedNode(null);
-                          setShowAllNodes(false);
-                        }}
-                      >
-                        🔄 Összes kapcsolat mutatása
-                      </button>
-                    )}
-                  </>
+                <h2 style={{ textAlign: 'center', fontWeight: 700, fontSize: 22, marginBottom: 8 }}>
+                  Betegségek és események kapcsolata
+                </h2>
+                {selectedEvent && (
+                  <button 
+                    className="button reset-view-button"
+                    onClick={showGraphView}
+                  >
+                    🔄 Összes kapcsolat mutatása
+                  </button>
                 )}
               </div>
               <div className="graph-inner">
-                {showCalendar ? (
-                  <Calendar 
-                    onBack={() => {
-                      setShowCalendar(false);
-                      setSuggestedSlots([]);
-                    }}
-                    suggestedSlots={suggestedSlots}
-                    onSelectSlot={handleSlotSelect}
-                  />
-                ) : selectedMetric ? (
-                  <div style={{ margin: '0 0 20px 0', background: '#f8f9fa', borderRadius: 8, padding: 20, fontSize: 15 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="metric-icon" style={{ fontSize: '24px' }}>
-                          {healthMetrics.find(m => m.title === selectedMetric)?.icon}
-                        </div>
-                        <h3 style={{ margin: 0 }}>{metricDescriptions[selectedMetric]}</h3>
-                      </div>
-                      <button onClick={() => setSelectedMetric(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5 }}>×</button>
-                    </div>
-                    <div style={{ marginTop: 20 }}>
-                      <div style={{ 
-                        marginBottom: 20, 
-                        padding: 15, 
-                        borderRadius: 8,
-                        backgroundColor: currentStatusObj?.color + '10',
-                        borderLeft: `4px solid ${currentStatusObj?.color}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                      }}>
-                        <div style={{ fontWeight: 'bold' }}>
-                          Aktuális érték: {healthMetrics.find(m => m.title === selectedMetric)?.value} {healthMetrics.find(m => m.title === selectedMetric)?.unit}
-                        </div>
-                        <div style={{ 
-                          color: currentStatusObj?.color,
-                          fontWeight: 'bold'
-                        }}>
-                          ({currentStatusObj?.label})
-                        </div>
-                      </div>
-                      <h4 style={{ marginBottom: 15 }}>Állapotjelzések magyarázata:</h4>
-                      {statusDescriptions.map((status, index) => (
-                        <div key={index} style={{ 
-                          marginBottom: 10, 
-                          padding: 10, 
-                          borderRadius: 4,
-                          backgroundColor: status.color + '10',
-                          borderLeft: `4px solid ${status.color}`
-                        }}>
-                          <div style={{ fontWeight: 'bold', color: status.color }}>{status.label}</div>
-                          <div>{status.desc}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Graph
-                    nodes={visibleNodes}
-                    edges={visibleEdges}
-                    onSelect={handleGraphSelect}
-                  />
-                )}
+                <Graph
+                  nodes={visibleNodes}
+                  edges={visibleEdges}
+                  onSelect={handleGraphSelect}
+                />
               </div>
             </>
+          )}
+
+          {mainPanelView === 'metric' && selectedMetric && (
+            <div style={{ margin: '0 0 20px 0', background: '#f8f9fa', borderRadius: 8, padding: 20, fontSize: 15, height: '100%', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="metric-icon" style={{ fontSize: '24px' }}>
+                    {healthMetrics.find(m => m.title === selectedMetric)?.icon}
+                  </div>
+                  <h3 style={{ margin: 0 }}>{metricDescriptions[selectedMetric]}</h3>
+                </div>
+                <button onClick={showGraphView} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5 }}>×</button>
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <div style={{ 
+                  marginBottom: 20, 
+                  padding: 15, 
+                  borderRadius: 8,
+                  backgroundColor: currentStatusObj?.color + '10',
+                  borderLeft: `4px solid ${currentStatusObj?.color}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <div style={{ fontWeight: 'bold' }}>
+                    Aktuális érték: {healthMetrics.find(m => m.title === selectedMetric)?.value} {healthMetrics.find(m => m.title === selectedMetric)?.unit}
+                  </div>
+                  <div style={{ 
+                    color: currentStatusObj?.color,
+                    fontWeight: 'bold'
+                  }}>
+                    ({currentStatusObj?.label})
+                  </div>
+                </div>
+                <h4 style={{ marginBottom: 15 }}>Állapotjelzések magyarázata:</h4>
+                {statusDescriptions.map((status, index) => (
+                  <div key={index} style={{ 
+                    marginBottom: 10, 
+                    padding: 10, 
+                    borderRadius: 4,
+                    backgroundColor: status.color + '10',
+                    borderLeft: `4px solid ${status.color}`
+                  }}>
+                    <div style={{ fontWeight: 'bold', color: status.color }}>{status.label}</div>
+                    <div>{status.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mainPanelView === 'connections' && (
+            <div style={{ padding: 20 }}>
+              <h2>Válassza ki az IBT adatforrásait.</h2>
+              <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: 20 }}>
+                <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaUserMd size={40} /><p>EESZT</p></div>
+                <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaHeartbeat size={40} /><p>Okosóra</p></div>
+                <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaChartLine size={40} /><p>Okos Mérleg</p></div>
+              </div>
+            </div>
+          )}
+
+          {mainPanelView === 'financing' && (
+            <div style={{ padding: 20 }}>
+              <h2>Betegségfinanszirozás tervező</h2>
+              <p>Itt jelenik meg egy kalkuláció a beteg adatai alapján.</p>
+              <div style={{ marginTop: 20, padding: 15, background: '#eee', borderRadius: 5}}>
+                 Példa kalkuláció: Várható gyógyszerköltség, támogatások stb.
+              </div>
+            </div>
           )}
         </div>
         <div className="chatbox-container">
@@ -946,7 +1032,24 @@ const App: React.FC = () => {
         <button className="button appointment-button" onClick={openAppointmentCalendar}>
           📅 Időpontfoglalás
         </button>
+        <button className="button" onClick={showDataConnections}>
+          <FaLink style={{ marginRight: 5 }}/> Adatkapcsolatok kezelése 
+        </button>
+        <button className="button" disabled>
+          Csatolt szolgáltatások
+        </button>
+        <button className="button" onClick={showFinancingPlanner}>
+          <FaCalculator style={{ marginRight: 5 }}/> Betegségfinanszirozás tervező
+        </button>
       </div>
+
+      {editingEvent && (
+        <EventForm
+          initialData={editingEvent}
+          onSubmit={handleUpdateEvent}
+          onClose={() => setEditingEvent(null)}
+        />
+      )}
     </div>
   );
 };

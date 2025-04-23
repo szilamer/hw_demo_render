@@ -24,14 +24,14 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
         <div className="document-viewer-body">
           {document.type === 'pdf' ? (
             <iframe 
-              src={`/src/documents/${document.url}`} 
+              src={`/api/documents/download/${document.url}`} 
               width="100%" 
               height="500px" 
               title={document.title}
             />
           ) : document.type === 'image' ? (
             <img 
-              src={`/src/documents/${document.url}`} 
+              src={`/api/documents/download/${document.url}`} 
               alt={document.title} 
               style={{ maxWidth: '100%', maxHeight: '500px' }} 
             />

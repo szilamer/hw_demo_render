@@ -1,36 +1,142 @@
-# Kovács István - Részletes Egészségügyi Dokumentáció
+# Kovács Julianna - Részletes Egészségügyi Dokumentáció (Rheumatoid Arthritis)
 
 ## Alapadatok
-- Név: Kovács István
-- Születési dátum: 1971.05.15
-- TAJ: 123-456-789
-- Lakcím: 1234 Budapest, Példa utca 1.
-- Foglalkozás: Irodai dolgozó
-- Családi állapot: Nős
-- Sürgősségi kontakt: Kovács Istvánné (feleség) - +36 20 123 4567
+- Név: Kovács Julianna
+- Születési dátum: 1958.03.02
+- TAJ: 123456789
+- Lakcím: 1111 Budapest, Fiktív utca 12.
+- Ellátó orvos (kezdeti): Dr. Kiss Mária (O12345) @ Országos Reumatológiai és Fizioterápiás Intézet
 
-## Anamnézis (2023.03.15)
-- Családi anamnézis: 
-  * Apa: 2-es típusú diabétesz, magas vérnyomás
-  * Anya: Elhízás, magas koleszterinszint
-- Életmód:
-  * Dohányzás: Nem dohányzik (10 éve leszokott)
-  * Alkohol: Alkalmanként, társasági ivó
-  * Testmozgás: Minimális, napi 30 perc séta
-  * Táplálkozás: Rendszertelen, gyakran készételek
+## Anamnézis (2014.09.24 előtt)
+- Panaszok kezdete: 2014 február
+- Tünetek: Reggeli ízületi merevség, kéz/láb kisízületi fájdalom, duzzanat, fogyás, gyengeség, hőemelkedés.
 
-## Első Vizsgálat (2023.03.15)
-- Fizikális vizsgálat:
-  * Magasság: 178 cm
-  * Testsúly: 98 kg
-  * BMI: 30.9 (Elhízás I. fokozat)
-  * Vérnyomás: 165/95 Hgmm
-  * Pulzus: 88/perc, reguláris
-- Panaszok:
-  * Gyakori fejfájás
-  * Fáradékonyság
-  * Szédülés
-  * Látászavarok
+## Első Vizsgálat és Diagnózis (2014.09.24)
+- Panaszok: Állandó fájdalom (csukló, MCP, PIP), ízületi duzzanat, nyomásérzékenység.
+- Labor: CRP emelkedett (38 mg/L).
+- Aktivitás: DAS28: 5.8 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Vizsgálat (11041)
+- Első Gyógyszerfelírás:
+  * Apranax 550mg (NSAID)
+  * Ebetrexat 20mg/ml inj. (Methotrexát, MTX) 0.5ml (10mg? vagy 20mg?) hetente
+  * Huma-Folacid 5mg tabletta hetente
+
+## Kontroll Vizsgálat (2015.03.24)
+- Állapot: Javulás, reggeli merevség 30 perc, 2 duzzadt, 3 nyomásérzékeny ízület. Enyhe MTX mellékhatás (hányinger, fáradtság).
+- Labor: CRP 9 mg/L, We 22 mm/h.
+- Aktivitás: DAS28: 3.2 (Mérsékelt)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301)
+- Gyógyszerváltozás:
+  * Folsav emelés: Huma-Folacid 5mg - heti 2x (10mg/hét)
+  * Apranax elhagyva (feltételezés)
+  * Ebetrexat (MTX) folytatása
+
+## Kontroll Vizsgálat (2015.09.21)
+- Állapot: Stabil, minimális reggeli merevség, nincs duzzanat/nyomásérzékenység.
+- Labor: CRP 4 mg/L, We 14 mm/h.
+- Aktivitás: DAS28: 2.6 (Alacsony / Remisszió közeli)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301)
+- Gyógyszerfelírás:
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+
+## Fellángolás (2016.04.07)
+- Állapot: Panaszok fokozódtak, reggeli merevség >1 óra, kéz kisízületek és térd fájdalmas duzzanata.
+- Labor: CRP 35 mg/L, We 42 mm/h.
+- Aktivitás: DAS28: 5.4 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerváltozás / Javaslat:
+  * Prednisolon 5mg tabletta hozzáadva
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+  * Biológiai terápia előkészítése javasolt
+
+## Első Biológiai Terápia Indítása (2016.07.09)
+- Állapot: Jelentős ízületi fájdalom, reggeli merevség >1 óra.
+- Labor: CRP 31 mg/L, We 39 mm/h.
+- Aktivitás: DAS28: 5.6 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerváltozás:
+  * Adalimumab 40mg inj. kéthetente SC indítva
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+  * Prednisolon fokozatos leépítése
+
+## Kontroll Vizsgálat (2017.03.06)
+- Állapot: Panaszok jelentősen enyhültek, enyhe merevség, fájdalommentes, munkaképes. Nincs aktív gyulladás.
+- Labor: CRP 3 mg/L, We 12 mm/h.
+- Aktivitás: DAS28: 2.8 (Alacsony / Remisszió)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerfelírás:
+  * Adalimumab folytatása
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+  * Prednisolon elhagyva
+
+## Fellángolás (2018.04.19)
+- Állapot: Panaszok jelentősen fokozódtak, reggeli merevség >2 óra, több ízület fájdalmas, duzzadt. Fáradékonyság, étvágytalanság.
+- Labor: CRP 58 mg/L, We 65 mm/h.
+- Aktivitás: DAS28: 6.2 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerváltozás:
+  * Prednisolon 5mg átmeneti emelése
+  * Ebetrexat (MTX) dózis növelése (?)
+  * Adalimumab folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+
+## Kontroll Vizsgálat (2018.10.25)
+- Állapot: Stabilizálódott, panaszok enyhültek, de aktivitás még magas.
+- Labor: CRP 33 mg/L, We 41 mm/h.
+- Aktivitás: DAS28: 4.8 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerváltozás:
+  * Prednisolon elhagyása megkezdhető
+  * Ebetrexat (MTX) folytatása
+  * Adalimumab folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+
+## Fellángolás / Második Biológiai Terápia (2019.04.16)
+- Állapot: Betegség ismét aktívabb, ízületi duzzanatok visszatértek.
+- Labor: CRP 48 mg/L, We 59 mm/h.
+- Aktivitás: DAS28: 5.5 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerváltozás:
+  * Második Biológiai Terápia (Rituximab? Certolizumab? - 'Cetuximab' a forrásban) 200mg? indítva
+  * Adalimumab leállítva (feltételezés)
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+
+## Kontroll Vizsgálat (2019.10.17)
+- Állapot: Enyhe javulás (duzzanat, mozgástartomány).
+- Labor: CRP 37 mg/L, We 41 mm/h.
+- Aktivitás: DAS28: 4.3 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Gyógyszerfelírás:
+  * Második Biológiai Terápia folytatása
+  * Ebetrexat (MTX) folytatása
+  * Huma-Folacid (10mg/hét) folytatása
+
+## Kontroll Vizsgálat / Progresszió (2020.04.23)
+- Állapot: Progresszió jelei, több ízület deformálódott, mozgástartomány beszűkült.
+- Labor: CRP 51 mg/L, We 69 mm/h.
+- Aktivitás: DAS28: 6.0 (Magas)
+- Diagnózis: M0580 - Rheumatoid arthritis, szeropozitív
+- Beavatkozás: Kontrollvizsgálat (11301), Fizikális vizsgálat (13600), Mozgásterjedelem (13630)
+- Javaslat: Terápiaváltás szükségessé válhat.
+- Gyógyszerfelírás (utolsó ismert):
+  * Második Biológiai Terápia
+  * Ebetrexat (MTX)
+  * Huma-Folacid (10mg/hét)
 
 ## Vérnyomás Diagnózis (2023.03.15)
 - Diagnózis: I10 - Elsődleges magasvérnyomás-betegség

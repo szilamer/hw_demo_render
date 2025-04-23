@@ -35,6 +35,7 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
 
   // Üzenet hozzáadása a chat történethez
   const addMessage = useCallback((text: string, sender: 'user' | 'assistant') => {
+    console.log(`Adding message: Sender=${sender}, Text=${text}`);
     const newMessage: Message = {
       message: text,
       sender

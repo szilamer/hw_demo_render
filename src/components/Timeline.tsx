@@ -25,6 +25,7 @@ interface TimelineProps {
   onSelect: (itemId: string | null) => void;
   onRangeChange?: (start: Date, end: Date) => void;
   onAddEvent?: (event: TimelineItem) => void;
+  onEditEvent?: (item: TimelineItem) => void;
 }
 
 interface TimeWindow {
@@ -41,7 +42,8 @@ const Timeline: React.FC<TimelineProps> = ({
   items, 
   onSelect, 
   onRangeChange, 
-  onAddEvent 
+  onAddEvent, 
+  onEditEvent
 }: TimelineProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<VisTimeline | null>(null);
@@ -131,6 +133,17 @@ const Timeline: React.FC<TimelineProps> = ({
           }
         });
 
+        // Add doubleClick handler for editing
+        timeline.on('doubleClick', (properties: TimelineSelectProperties) => {
+          if (properties.items && properties.items.length > 0) {
+            const clickedItemId = properties.items[0].toString();
+            const itemToEdit = items.find(i => i.id === clickedItemId);
+            if (itemToEdit && onEditEvent) {
+              onEditEvent(itemToEdit);
+            }
+          }
+        });
+
         // Időablak változás figyelése - throttle-olt verzió
         let timeoutId: ReturnType<typeof setTimeout>;
         timeline.on('rangechange', () => {
@@ -165,7 +178,7 @@ const Timeline: React.FC<TimelineProps> = ({
         console.error('Timeline cleanup error:', error);
       }
     };
-  }, [items, onSelect, onRangeChange, timeWindow]);
+  }, [items, onSelect, onRangeChange, timeWindow, onEditEvent]);
 
   // Items frissítése
   useEffect(() => {
@@ -245,31 +258,9 @@ const Timeline: React.FC<TimelineProps> = ({
     }
   };
 
-  const handleDoubleClick = (event: MouseEvent) => {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.vis-item')) return;
-
-    const itemElement = target.closest('.vis-item') as HTMLElement;
-    const itemId = itemElement.getAttribute('data-id');
-    if (!itemId) return;
-
-    const item = items.find(i => i.id === itemId);
-    if (item?.documents && item.documents.length > 0) {
-      setSelectedDocument(item.documents[0]);
-    }
-  };
-
-  const handleAddEvent = (event: {
-    content: string;
-    start: Date;
-    documents: Document[];
-  }) => {
+  const handleAddEvent = (event: TimelineItem) => {
     if (onAddEvent) {
-      const newEvent: TimelineItem = {
-        id: `event-${Date.now()}`,
-        ...event
-      };
-      onAddEvent(newEvent);
+      onAddEvent(event);
     }
     setShowEventForm(false);
   };

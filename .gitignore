@@ -4,4 +4,8 @@ dist/
 .env
 *.log
 .cursor/
-temp_hw/ 
+temp_hw/
+
+# Ignore the source PDF directory and exported docker images
+PatientDatas/
+*.tar 

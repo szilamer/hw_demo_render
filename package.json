@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/server/index.js",
     "dev": "concurrently \"parcel src/index.html --open\" \"npm run server\"",
-    "server": "ts-node src/server/index.ts",
+    "server": "node --loader ts-node/esm src/server/index.ts",
     "build": "parcel build src/index.html --no-source-maps && tsc -p tsconfig.server.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,8 +17,8 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/multer": "^1.4.12",
-    "@types/react-big-calendar": "^1.16.1",
     "@types/react": "^18.2.67",
+    "@types/react-big-calendar": "^1.16.1",
     "@types/react-dom": "^18.2.22",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -29,11 +29,12 @@
     "react": "^18.2.0",
     "react-big-calendar": "^1.18.0",
     "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
     "recharts": "^2.15.3",
+    "typescript": "^5.4.2",
     "vis-data": "^7.1.9",
     "vis-network": "^9.1.9",
-    "vis-timeline": "^7.7.3",
-    "typescript": "^5.4.2"
+    "vis-timeline": "^7.7.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

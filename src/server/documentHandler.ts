@@ -1,7 +1,12 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer'; // Re-enable multer import
-import path from 'path';
+import path, { dirname } from 'path'; // Import dirname
+import { fileURLToPath } from 'url'; // Import fileURLToPath
 import * as fs from 'fs';
+
+// Define __dirname for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const router = express.Router();
 
@@ -59,7 +64,8 @@ router.get('/download/:filename', (req: Request, res: Response): void => {
       return;
     }
 
-    res.download(filePath);
+    // Use res.sendFile to send the file for inline display
+    res.sendFile(filePath);
   } catch (error) {
     console.error('Hiba a fájl letöltése során:', error);
     res.status(500).json({ error: 'Hiba a fájl letöltése során' });
