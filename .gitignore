@@ -1,11 +1,12 @@
 node_modules/
 dist/
 .parcel-cache/
-.env
-*.log
+PatientDatas/
+*.tar
 .cursor/
+.env
+.DS_Store
+*.log
 temp_hw/
 
-# Ignore the source PDF directory and exported docker images
-PatientDatas/
-*.tar 
+# Ignore the source PDF directory and exported docker images 
