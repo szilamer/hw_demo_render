@@ -1,0 +1,136 @@
+# Kovács István - Részletes Egészségügyi Dokumentáció
+
+## Alapadatok
+- Név: Kovács István
+- Születési dátum: 1971.05.15
+- TAJ: 123-456-789
+- Lakcím: 1234 Budapest, Példa utca 1.
+- Foglalkozás: Irodai dolgozó
+- Családi állapot: Nős
+- Sürgősségi kontakt: Kovács Istvánné (feleség) - +36 20 123 4567
+
+## Anamnézis (2023.03.15)
+- Családi anamnézis: 
+  * Apa: 2-es típusú diabétesz, magas vérnyomás
+  * Anya: Elhízás, magas koleszterinszint
+- Életmód:
+  * Dohányzás: Nem dohányzik (10 éve leszokott)
+  * Alkohol: Alkalmanként, társasági ivó
+  * Testmozgás: Minimális, napi 30 perc séta
+  * Táplálkozás: Rendszertelen, gyakran készételek
+
+## Első Vizsgálat (2023.03.15)
+- Fizikális vizsgálat:
+  * Magasság: 178 cm
+  * Testsúly: 98 kg
+  * BMI: 30.9 (Elhízás I. fokozat)
+  * Vérnyomás: 165/95 Hgmm
+  * Pulzus: 88/perc, reguláris
+- Panaszok:
+  * Gyakori fejfájás
+  * Fáradékonyság
+  * Szédülés
+  * Látászavarok
+
+## Vérnyomás Diagnózis (2023.03.15)
+- Diagnózis: I10 - Elsődleges magasvérnyomás-betegség
+- 24 órás vérnyomásmonitor eredmények:
+  * Nappali átlag: 158/92 Hgmm
+  * Éjszakai átlag: 145/88 Hgmm
+  * Dipper státusz: Non-dipper
+
+## Vércukor Vizsgálat (2023.04.02)
+- Laboratóriumi eredmények:
+  * Éhomi vércukor: 8.2 mmol/L (normál: 3.9-5.5)
+  * HbA1c: 7.8% (normál: 4.0-5.6)
+  * Koleszterin: 6.2 mmol/L (normál: <5.2)
+  * Triglicerid: 2.8 mmol/L (normál: <1.7)
+  * HDL: 0.9 mmol/L (normál: >1.0)
+  * LDL: 3.8 mmol/L (normál: <2.6)
+
+## Cukorbetegség Diagnózis (2023.04.05)
+- Diagnózis: E11 - 2-es típusú diabetes mellitus
+- OGTT eredmények:
+  * 0 perc: 8.2 mmol/L
+  * 120 perc: 11.8 mmol/L
+
+## Gyógyszerfelírások (2023.04.10)
+1. Vérnyomáscsökkentő:
+   * Ramipril 5mg naponta 1x
+   * Indapamid 1.5mg naponta 1x
+2. Inzulin:
+   * Metformin 1000mg naponta 2x
+   * Diéta és életmódváltás javasolt
+
+## Dietetikai Tanácsadás (2023.04.25)
+- Javasolt étrend:
+  * Napi kalóriabevitel: 1800 kcal
+  * Szénhidrát: 45%
+  * Fehérje: 25%
+  * Zsír: 30%
+- Étkezési terv mellékletben
+- Javasolt testmozgás: napi 45 perc séta, heti 3x úszás
+
+## Kardiológiai Vizsgálat (2023.05.12)
+- EKG eredmények:
+  * Szinuszritmus
+  * Balkamra hipertrófia jelei
+  * QRS: 98 ms
+  * QTc: 440 ms
+- Szívultrahang:
+  * EF: 55%
+  * Septum: 13mm (normál: <11mm)
+  * Hátsófal: 12mm (normál: <11mm)
+  * Diasztolés diszfunkció: Grade I
+
+## Balkamra Hipertrófia Diagnózis (2023.05.15)
+- Diagnózis: I51.7 - Cardiomegalia
+- További vizsgálatok:
+  * 24 órás Holter monitor
+  * Terheléses EKG javasolt
+
+## Gyógyszerváltás (2023.05.18)
+- Új vérnyomáscsökkentő kombináció:
+  * Perindopril 10mg + Amlodipin 5mg fix kombináció
+  * Indapamid 1.5mg megtartva
+
+## Kontroll Vizsgálat (2023.06.20)
+- Aktuális állapot:
+  * Testsúly: 94 kg (-4 kg)
+  * Vérnyomás: 142/85 Hgmm
+  * Éhomi vércukor: 6.8 mmol/L
+- Laboreredmények:
+  * HbA1c: 7.2% (javuló tendencia)
+  * Vesefunkció normális
+  * Májfunkció normális
+
+## Szemészeti Vizsgálat (2023.07.05)
+- Vizsgálati eredmények:
+  * Visus: jobb szem 1.0, bal szem 0.9
+  * Szemnyomás: jobb 16 Hgmm, bal 17 Hgmm
+  * Fundusvizsgálat: enyhe retinopathia diabetica jelei
+
+## Retinopátia Diagnózis (2023.07.05)
+- Diagnózis: H36.0 - Diabeteses retinopathia
+- Javasolt követés:
+  * 3 havonta szemészeti kontroll
+  * Szemfenék fotódokumentáció
+  * Szükség esetén lézerkezelés
+
+## Inzulin Adagolás Módosítása (2023.07.10)
+- Új terápia:
+  * Metformin 1000mg 2x1
+  * Gliclazid MR 60mg 1x1
+  * Vércukormérés naponta 2x
+
+## Éves Kontroll Vizsgálat (2024.03.20)
+- Összefoglaló értékelés:
+  * Testsúly: 90 kg (-8 kg az első vizsgálat óta)
+  * Vérnyomás: 135/82 Hgmm
+  * HbA1c: 6.8%
+  * Szemfenéki állapot stabil
+  * Balkamra hipertrófia nem progrediált
+- További teendők:
+  * Gyógyszeres terápia folytatása
+  * Rendszeres kontrollok fenntartása
+  * Életmódváltás további támogatása 

@@ -1,0 +1,743 @@
+/* Reset és alap stílusok */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #d9e6ff;  /* Még sötétebb árnyalatú kék háttér */
+}
+
+/* Konténer stílusok */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+  gap: 20px;
+  min-height: 100vh; /* vh helyett min-height */
+  overflow-x: hidden;
+}
+
+/* Fejléc stílusok */
+.header-container {
+  width: calc(100% - 30px);
+  margin: 0 15px;
+  padding: 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+}
+
+h1, h2, h3, h4 {
+  color: #2c3e50;
+  margin: 0 0 15px 0;
+}
+
+.patient-info {
+  color: #34495e;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Timeline stílusok */
+.timeline-container {
+  width: calc(100% - 30px); /* Kompenzáljuk a padding-ot */
+  height: 250px;
+  border: 1px solid #ccc;
+  border-radius: 12px;  /* Kerekebb sarkok */
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);  /* Erősebb árnyék */
+  box-sizing: border-box;
+  margin: 0 15px; /* Középre igazítás */
+}
+
+.timeline-inner {
+  width: 100%;
+  height: 200px;
+}
+
+/* Fő tartalom stílusok */
+.main-content {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  width: calc(100% - 30px);
+  min-height: 0;
+  flex-direction: row;
+  box-sizing: border-box;
+  margin: 0 15px;
+}
+
+/* Graph és Chatbox közös stílusok */
+.graph-container,
+.chatbox-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  min-height: 0;
+  box-sizing: border-box;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.graph-inner,
+.chatbox-inner {
+  flex: 1;
+  min-height: 0; /* Fontos a flex konténer túlcsordulásának megakadályozásához */
+  position: relative;
+}
+
+/* Info tartalom stílusok */
+.info-content {
+  padding: 15px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.documents {
+  margin-top: 15px;
+}
+
+.documents ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.documents li {
+  margin-bottom: 8px;
+}
+
+.documents a {
+  color: #4e73df;
+  text-decoration: none;
+}
+
+.documents a:hover {
+  text-decoration: underline;
+}
+
+/* Info sáv stílusok */
+.info-bar {
+  width: calc(100% - 30px); /* Kompenzáljuk a padding-ot */
+  padding: 15px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 12px;  /* Kerekebb sarkok */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);  /* Erősebb árnyék */
+  box-sizing: border-box;
+  margin: 0 15px; /* Középre igazítás */
+}
+
+/* Gomb stílusok */
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4e73df;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.button:hover {
+  background-color: #2e59d9;
+}
+
+/* Idővonalas események stílusok */
+.vis-timeline {
+  border: none !important;
+  font-family: inherit !important;
+}
+
+.vis-item {
+  border-color: #4e73df !important;
+  background-color: #4e73df !important;
+  color: white !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+}
+
+.vis-item.vis-selected {
+  border-color: #2e59d9 !important;
+  background-color: #2e59d9 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.vis-item .vis-item-content {
+  padding: 5px !important;
+}
+
+/* Graph stílusok */
+.vis-network {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  outline: none !important;
+}
+
+/* Fájl feltöltés gomb stílusok */
+.file-upload-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Időpontfoglalás gomb stílusok */
+.appointment-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Graph fejléc stílusok */
+.graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.graph-header h2 {
+  margin: 0;
+}
+
+.reset-view-button {
+  background-color: #6c757d;
+  font-size: 13px;
+  padding: 8px 16px;
+}
+
+.reset-view-button:hover {
+  background-color: #5a6268;
+}
+
+/* Chat stílusok */
+.chatbox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message {
+  max-width: 80%;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 5px;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: #4e73df;
+  color: white;
+}
+
+.assistant-message {
+  align-self: flex-start;
+  background-color: #e9ecef;
+  color: #212529;
+}
+
+.message-content {
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+.message-timestamp {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-align: right;
+}
+
+.chat-input {
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  background-color: white;
+  border-top: 1px solid #dee2e6;
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.chat-input textarea {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.chat-input textarea:focus {
+  outline: none;
+  border-color: #4e73df;
+  box-shadow: 0 0 0 2px rgba(78, 115, 223, 0.25);
+}
+
+.send-button {
+  padding: 10px 20px;
+  white-space: nowrap;
+}
+
+.send-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading animáció */
+.loading span {
+  animation: loading 1s infinite;
+  display: inline-block;
+  margin-right: 2px;
+}
+
+.loading span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loading {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.tooltip-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.tooltip-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.tooltip-content p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #34495e;
+}
+
+.tooltip-content ul {
+  margin: 4px 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: #34495e;
+}
+
+.tooltip-content li {
+  margin: 2px 0;
+}
+
+/* Timeline és Graph tooltip pozicionálás */
+.timeline-tooltip {
+  transform: translateY(-50%);
+}
+
+.graph-tooltip {
+  transform: translate(10px, -50%);
+}
+
+/* IBR Header stílusok */
+.ibr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.mode-switch {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-button {
+  padding: 8px 16px;
+  border: 1px solid #4e73df;
+  border-radius: 20px;
+  background-color: white;
+  color: #4e73df;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mode-button.active {
+  background-color: #4e73df;
+  color: white;
+}
+
+.mode-button:hover {
+  background-color: #4e73df;
+  color: white;
+}
+
+/* Voice mode stílusok */
+.voice-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 20px;
+}
+
+.voice-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background-color: #4e73df;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.voice-button:hover {
+  transform: scale(1.1);
+  background-color: #2e59d9;
+}
+
+.voice-button:active {
+  transform: scale(0.95);
+}
+
+.voice-mode p {
+  color: #6c757d;
+  font-size: 16px;
+  text-align: center;
+  margin: 0;
+}
+
+/* Reszponzív beállítások */
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 10px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .timeline-container,
+  .main-content,
+  .info-bar,
+  .header-container {
+    width: calc(100% - 20px);
+    margin: 0 10px;
+  }
+
+  .main-content {
+    flex-direction: column;
+    flex: 0 0 auto;
+  }
+  
+  .graph-container,
+  .chatbox-container {
+    width: 100%;
+    min-height: 400px;
+    flex: 0 0 auto; /* Ne nyúljon */
+  }
+
+  .timeline-container {
+    height: 200px;
+    flex: 0 0 auto; /* Ne nyúljon */
+  }
+
+  .info-bar {
+    flex: 0 0 auto; /* Ne nyúljon */
+    margin-top: auto; /* Mindig alulra */
+  }
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    gap: 15px;
+  }
+
+  .header-container {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .patient-info {
+    font-size: 14px;
+  }
+
+  .graph-container,
+  .chatbox-container {
+    min-height: 300px;
+  }
+
+  .button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .chat-input {
+    padding: 10px;
+  }
+
+  .ibr-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .mode-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .voice-button {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  .voice-mode p {
+    font-size: 14px;
+  }
+}
+
+/* Document Viewer */
+.document-viewer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.document-viewer-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.document-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+/* Event Form */
+.event-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.event-form-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+}
+
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.file-select-button {
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.document-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background-color: #f8f8f8;
+  border-radius: 4px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.submit-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Timeline módosítások */
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-event-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timeline-item {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.timeline-item:hover {
+  background-color: #f5f5f5;
+}
+
+.timeline-item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.timeline-item-date {
+  color: #666;
+}
+
+.timeline-item-documents {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.document-button {
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.document-button:hover {
+  background-color: #bbdefb;
+} 

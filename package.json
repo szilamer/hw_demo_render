@@ -1,0 +1,45 @@
+{
+  "name": "ujprojekt",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Betegség történetek vizualizációja",
+  "scripts": {
+    "start": "node dist/server/index.js",
+    "dev": "concurrently \"parcel src/index.html --open\" \"npm run server\"",
+    "server": "ts-node src/server/index.ts",
+    "build": "parcel build src/index.html --no-source-maps && tsc -p tsconfig.server.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/multer": "^1.4.12",
+    "@types/react-big-calendar": "^1.16.1",
+    "@types/react": "^18.2.67",
+    "@types/react-dom": "^18.2.22",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "express": "^5.1.0",
+    "moment": "^2.30.1",
+    "multer": "^1.4.5-lts.2",
+    "neo4j-driver": "^5.28.1",
+    "react": "^18.2.0",
+    "react-big-calendar": "^1.18.0",
+    "react-dom": "^18.2.0",
+    "recharts": "^2.15.3",
+    "vis-data": "^7.1.9",
+    "vis-network": "^9.1.9",
+    "vis-timeline": "^7.7.3",
+    "typescript": "^5.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "concurrently": "^8.2.2",
+    "parcel": "^2.12.0",
+    "process": "^0.11.10",
+    "ts-node": "^10.9.2"
+  }
+}

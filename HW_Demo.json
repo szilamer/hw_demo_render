@@ -1,0 +1,455 @@
+{
+  "name": "HW_Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook/",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        -240
+      ],
+      "id": "9306c964-373d-4321-917d-088daf42b4ae",
+      "name": "Webhook",
+      "webhookId": "e3942b2c-a36b-4ae3-9003-211305d5171f"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{$json}}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2320,
+        -200
+      ],
+      "id": "919e406b-4039-4d41-8587-9f707b28dcfd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "agent": "openAiFunctionsAgent",
+        "promptType": "define",
+        "text": "={{ $json.body.message }}\n\nKontextus:\nKiválasztott esemény: {{ $json.body.context.selectedEvent.content }} ({{ $json.body.context.selectedEvent.start }})\nKiválasztott csomópont: {{ $json.body.context.selectedNode.id }}\n\n{% if $json.body.context.relatedNodes %}\nKapcsolódó események:\n{% for node in $json.body.context.relatedNodes %}\n- {{ node.label }}\n{% endfor %}\n{% endif %}",
+        "options": {
+          "systemMessage": "Egy amgyarul beszélő egészségügyi asszisztens vagy. A rendszer aminek része vagy az Intelligens Betegtámogató Rendszer. Ebbwn a rendszerben a beteg áttekintheti a betegségtörténetét, megnézheti a betegségtörténetének összefüggéseit egy gráf ábrázoláson. \n\nA kapott kontextusban látod azokat az információkat amiket éppen néz a felhasználó. A kérdéseire való válaszadáskor vedd figyelembe, hogy ő most éppen azokat az elemeket nézi (számára is) ez jelenti a kontextust.\nAmennyiben nincs kijelölve semmi akkor az adatbázisban található betegségtörténet egészében/áltlában jelenti a beszélgetés kontxtusát, azt jelenti hogy e felhasználü nem egy konkrét eseményt figyel\n\nA teljes betegadatbázis a dokumentumokban érhetők el\n\nA válaszaiddal légy nagyon empatikus, támogató, és segíts a felhasználüónak megérteni a be tegegségével kapcsolatos tudnivalókat teendőket. "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        280,
+        280
+      ],
+      "id": "9600b2da-7da3-4a41-beee-5bde3b6ab20a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4-turbo-preview",
+          "mode": "list",
+          "cachedResultName": "gpt-4-turbo-preview"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        260,
+        420
+      ],
+      "id": "c8f56d62-4407-40f0-af66-89c7e2469c6b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "dNZzMppxN2GazRjd",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.timestamp }}",
+        "contextWindowLength": 5000
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        440
+      ],
+      "id": "93f0b70a-b505-4405-a55a-e13593f95eea",
+      "name": "Window Buffer Memory"
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "assistantId": {
+          "__rl": true,
+          "value": "asst_WLDXYDdgyJw2n4f1zzdKHF0s",
+          "mode": "list",
+          "cachedResultName": "HW_Demo_Patient00"
+        },
+        "prompt": "define",
+        "text": "=={{$json.body.message}}\n\nKontextus:\n{% if $json.body.context.selectedEvent %}\nEsemény: {{$json.body.context.selectedEvent.content}}\nIdőpont: {{$json.body.context.selectedEvent.start}}\n{% else %}\nNincs kiválasztott esemény\n{% endif %}\n\nÖn egy egészségügyi asszisztens, akinek az egyik fő feladata a NEAK-kal kapcsolatos kérdések azonosítása. Ha a felhasználó az alábbi témákkal kapcsolatban kérdez, azt MINDENKÉPPEN jelezze a megadott formátumban:\n\n1. NEAK protokollok és eljárásrendek, például:\n   - Betegségek kezelési protokolljai\n   - Terápiás irányelvek\n   - Kötelező vizsgálatok és kontrollok\n   - Szakorvosi beutalók rendje\n\n2. Finanszírozási kérdések, például:\n   - Támogatott gyógyszerek\n   - Térítésmentes ellátások\n   - TB támogatás mértéke\n   - Gyógyászati segédeszközök támogatása\n\n3. Betegutak és ellátási rend, például:\n   - Szakorvosi beutalás menete\n   - Kötelező vizsgálati lépések\n   - Kontrollvizsgálatok időzítése\n   - Szakorvosi konzultációk rendje\n\nHa a kérdés a fenti témák BÁRMELYIKÉT érinti, a válaszában használja ezt a jelölést:\n[NEAK_QUERY: \"ide másolja be a konkrét kérdést\"]\n\nPélda:\nKérdés: \"Milyen gyakran kell járnom szemészeti kontrollra?\"\nVálasz: [NEAK_QUERY: \"Milyen gyakran kell járnom szemészeti kontrollra?\"] A szemészeti...\n\nVálaszoljon a kérdésre empatikusan és érthetően, de ha a fenti témák bármelyikét érinti, NE FELEJTSE EL a NEAK_QUERY jelölést használni!",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "286f5139-51eb-4d6a-a40a-5e30ee0e97da",
+      "name": "OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "dNZzMppxN2GazRjd",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "{{ $json.body.timestamp }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        340,
+        -60
+      ],
+      "id": "66e4375d-9027-4469-8dfe-316a608829c4",
+      "name": "Window Buffer Memory1"
+    },
+    {
+      "parameters": {
+        "content": "## Agentic solution\n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 400,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        180,
+        180
+      ],
+      "id": "df19b9ef-a5da-4574-9f76-d5861ac180ae",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "##Assistant based solution\n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 380,
+        "width": 380
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        120,
+        -340
+      ],
+      "id": "c6dcfe92-5024-46e5-8e05-09a5864994fe",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Debug: teljes input objektum\nconsole.log('Full input:', JSON.stringify($input.item.json, null, 2));\n\n// A válasz lehet a text vagy output mezőben\nconst response = $input.item.json.text || $input.item.json.output || '';\nconsole.log('Response to process:', response);\n\n// Rugalmasabb regex pattern\nconst neakQueryMatch = response.match(/\\[NEAK_QUERY:.*?\"([^\"]+)\"\\]/);\n\nif (neakQueryMatch) {\n  console.log('NEAK query found:', neakQueryMatch[1]);\n  return {\n    needsExpert: true,\n    query: neakQueryMatch[1],\n    originalResponse: response.replace(neakQueryMatch[0], '').trim()\n  };\n}\n\nconsole.log('No NEAK query found');\nreturn {\n  needsExpert: false,\n  originalResponse: response\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        620,
+        -240
+      ],
+      "id": "bc53ed60-6e7d-4af9-abcd-398929925d40",
+      "name": "Output data preprocessing"
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 2,
+        "output": "={{ $input.item.json.needsExpert === true }}",
+        "looseTypeValidation": true
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        840,
+        -240
+      ],
+      "id": "63afcb87-8800-4f54-aed5-dc8cbca7cb90",
+      "name": "Switch",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2060,
+        -200
+      ],
+      "id": "7d64d422-f03c-4902-a99b-1ac57e83bf46",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "assistant",
+        "assistantId": {
+          "__rl": true,
+          "value": "asst_0TdwFac1rNmISPVmGsnnXnFt",
+          "mode": "list",
+          "cachedResultName": "Overview assistant"
+        },
+        "prompt": "define",
+        "text": "=Ön egy egészségügyi szakértő asszisztens, aki a NEAK protokollokra és eljárásrendekre specializálódott. \n\nAz Ön feladata:\n- A beérkező kérdések alapján releváns információk keresése a NEAK dokumentációban\n- A talált információk összekapcsolása a beteg konkrét helyzetével\n- Gyakorlatias, személyre szabott válaszok megfogalmazása\n- A hivatalos protokollok érthetővé tétele a beteg számára\n\nMinden válaszában:\n- Fókuszáljon a kérdező konkrét problémájára\n- Kapcsolja össze a protokoll előírásait a beteg egyedi helyzetével\n- Adjon gyakorlati útmutatást\n- Legyen empatikus és támogató\n- Ha valamiben bizonytalan, jelezze ezt egyértelműen\n\n===\n\nA következő kérdésre keresünk választ a NEAK protokollok alapján:\n\nKÉRDÉS: {{$json.query}}\n\nKONTEXTUS:\n{{$json.originalResponse}}\n\nKérem, a fenti kontextus és a rendelkezésre álló NEAK dokumentáció alapján:\n1. Azonosítsa a releváns protokollokat és eljárásrendeket\n2. Magyarázza el ezek jelentőségét a beteg szempontjából\n3. Adjon gyakorlati útmutatást a következő lépésekről\n4. Ha szükséges, javasoljon további konzultációs lehetőségeket\n\nVálaszában legyen közérthető és gyakorlatias, de szakmailag pontos.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1260,
+        100
+      ],
+      "id": "56892aeb-70e2-41e9-af4e-d7424a26eec9",
+      "name": "NEAK_assistant",
+      "credentials": {
+        "openAiApi": {
+          "id": "dNZzMppxN2GazRjd",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Intent management \n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 380,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -340
+      ],
+      "id": "454dcff6-16e8-4b54-a8ca-ddac01d90512",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  // Egyszerű objektum létrehozása\n  const newItem = {\n    json: {\n      needsExpert: item.json.needsExpert,\n      query: item.json.query,\n      originalResponse: item.json.originalResponse,\n      output: item.json.originalResponse,  // Mindig az originalResponse-t használjuk outputként\n      threadId: item.json.threadId\n    }\n  };\n  \n  items.push(newItem);\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        -40
+      ],
+      "id": "6120313b-19c5-4ff3-b643-b03c98abd142",
+      "name": "Response Formating"
+    },
+    {
+      "parameters": {
+        "content": "## NEAK overview assistant\n**Double click** to edit me. [Guide](https://docs.n8n.io/workflows/sticky-notes/)",
+        "height": 280,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        20
+      ],
+      "id": "746c5459-b218-4f8c-88d0-d8ef478d9d48",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "height": 440,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1780,
+        -340
+      ],
+      "id": "f29730a5-c21b-466c-a821-d0b2dea63046",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Új Code node a Switch és Merge között\nfor (const item of $input.all()) {\n  item.json = {\n    needsExpert: item.json.needsExpert || false,\n    query: item.json.query || '',\n    originalResponse: item.json.originalResponse || '',\n    output: item.json.originalResponse || '',  // Az eredeti választ használjuk outputként\n    threadId: item.json.threadId || ''\n  };\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        -220
+      ],
+      "id": "9425d328-7c43-49a6-bffc-0bb8d6dc7a19",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Output data preprocessing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "OpenAI",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output data preprocessing": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NEAK_assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NEAK_assistant": {
+      "main": [
+        [
+          {
+            "node": "Response Formating",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response Formating": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3286967a-4ba2-4a83-a5fa-5358cc36f33b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "085dc9ed1f08941c2e37f1feee5a13edf17aac015aee37a98b07b329ce8f3f92"
+  },
+  "id": "87yugDfv1NJyFggn",
+  "tags": []
+}

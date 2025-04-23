@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: hw-demo
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: REACT_APP_API_BASE_URL
+        sync: false
+      - key: REACT_APP_CHAT_WEBHOOK_URL
+        value: /webhook/webhook
+      - key: REACT_APP_N8N_WEBHOOK_URL
+        sync: false
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: hw-demo-data
+      mountPath: /data
+      sizeGB: 1 
