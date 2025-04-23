@@ -7,243 +7,113 @@ import HealthMetrics from './components/HealthMetrics';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import AppointmentSummary from './components/AppointmentSummary.tsx';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
-// API végpontok
-const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001';  // API alap URL
+// Környezeti változók beolvasása
+// const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
+// const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL; // Chat üzenetek kezelése
+const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Hardkódolt webhook URL
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || ''; // Backend API base URL
 
-// Fiktív beteg történetének adatai
+// Kovács Julianna (RA) adatai - FRISSÍTVE
 const patientEvents: TimelineItem[] = [
-  {
-    id: '1',
-    content: 'Első vizsgálat',
-    start: new Date('2023-03-15'),
-    documents: [
-      { id: 'doc1', title: 'Első vizsgálati jegyzőkönyv', url: '#', type: 'examination' },
-      { id: 'doc1a', title: 'Anamnézis felvétel', url: '#', type: 'anamnesis' }
-    ]
-  },
-  {
-    id: '2',
-    content: 'Magas vérnyomás diagnózis',
-    start: new Date('2023-03-15'),
-    documents: [
-      { id: 'doc1b', title: '24 órás vérnyomásmonitor eredmények', url: '#', type: 'diagnostic' },
-      { id: 'doc1c', title: 'Diagnózis és terápiás terv', url: '#', type: 'treatment_plan' }
-    ]
-  },
-  {
-    id: '3',
-    content: 'Vércukor vizsgálat',
-    start: new Date('2023-04-02'),
-    documents: [
-      { id: 'doc2', title: 'Laboratóriumi eredmények', url: '#', type: 'lab_results' },
-      { id: 'doc2a', title: 'Laborértékek elemzése', url: '#', type: 'analysis' }
-    ]
-  },
-  {
-    id: '4',
-    content: 'Cukorbetegség diagnózis',
-    start: new Date('2023-04-05'),
-    documents: [
-      { id: 'doc2b', title: 'OGTT vizsgálati eredmény', url: '#', type: 'diagnostic' },
-      { id: 'doc2c', title: 'Diabétesz kezelési terv', url: '#', type: 'treatment_plan' }
-    ]
-  },
-  {
-    id: '5',
-    content: 'Gyógyszerfelírás - Vérnyomáscsökkentő',
-    start: new Date('2023-04-10'),
-    documents: [
-      { id: 'doc3a', title: 'Vérnyomáscsökkentő receptek', url: '#', type: 'prescription' },
-      { id: 'doc3b', title: 'Gyógyszerszedési útmutató', url: '#', type: 'instructions' }
-    ]
-  },
-  {
-    id: '6',
-    content: 'Gyógyszerfelírás - Inzulin',
-    start: new Date('2023-04-10'),
-    documents: [
-      { id: 'doc3c', title: 'Diabétesz gyógyszerek receptjei', url: '#', type: 'prescription' },
-      { id: 'doc3d', title: 'Vércukormérési napló', url: '#', type: 'monitoring' }
-    ]
-  },
-  {
-    id: '7',
-    content: 'Dietetikai tanácsadás',
-    start: new Date('2023-04-25'),
-    documents: [
-      { id: 'doc4', title: 'Részletes étkezési terv', url: '#', type: 'diet_plan' },
-      { id: 'doc4a', title: 'Testmozgás terv', url: '#', type: 'exercise_plan' },
-      { id: 'doc4b', title: 'Kalória számítási útmutató', url: '#', type: 'instructions' }
-    ]
-  },
-  {
-    id: '8',
-    content: 'Kardiológiai vizsgálat',
-    start: new Date('2023-05-12'),
-    documents: [
-      { id: 'doc5', title: 'EKG lelet', url: '#', type: 'diagnostic' },
-      { id: 'doc5a', title: 'Szívultrahang eredmény', url: '#', type: 'diagnostic' },
-      { id: 'doc5b', title: 'Kardiológiai szakvélemény', url: '#', type: 'report' }
-    ]
-  },
-  {
-    id: '9',
-    content: 'Balkamra hipertrófia diagnózis',
-    start: new Date('2023-05-15'),
-    documents: [
-      { id: 'doc5c', title: 'Kardiológiai diagnózis', url: '#', type: 'diagnostic' },
-      { id: 'doc5d', title: 'További vizsgálati terv', url: '#', type: 'plan' }
-    ]
-  },
-  {
-    id: '10',
-    content: 'Gyógyszerváltás - Új vérnyomáscsökkentő',
-    start: new Date('2023-05-18'),
-    documents: [
-      { id: 'doc6', title: 'Új gyógyszer receptek', url: '#', type: 'prescription' },
-      { id: 'doc6a', title: 'Gyógyszerváltás indoklása', url: '#', type: 'report' }
-    ]
-  },
-  {
-    id: '11',
-    content: 'Kontroll vizsgálat',
-    start: new Date('2023-06-20'),
-    documents: [
-      { id: 'doc7', title: 'Kontroll vizsgálati eredmények', url: '#', type: 'examination' },
-      { id: 'doc7a', title: 'Laboreredmények', url: '#', type: 'lab_results' },
-      { id: 'doc7b', title: 'Állapotváltozás értékelése', url: '#', type: 'evaluation' }
-    ]
-  },
-  {
-    id: '12',
-    content: 'Szemészeti vizsgálat',
-    start: new Date('2023-07-05'),
-    documents: [
-      { id: 'doc8', title: 'Szemészeti lelet', url: '#', type: 'examination' },
-      { id: 'doc8a', title: 'Szemfenék fotók', url: '#', type: 'images' }
-    ]
-  },
-  {
-    id: '13',
-    content: 'Retinopátia korai jeleinek diagnózisa',
-    start: new Date('2023-07-05'),
-    documents: [
-      { id: 'doc8b', title: 'Retinopátia diagnózis', url: '#', type: 'diagnostic' },
-      { id: 'doc8c', title: 'Követési terv', url: '#', type: 'plan' }
-    ]
-  },
-  {
-    id: '14',
-    content: 'Inzulin adagolás módosítása',
-    start: new Date('2023-07-10'),
-    documents: [
-      { id: 'doc9', title: 'Új gyógyszerelési terv', url: '#', type: 'prescription' },
-      { id: 'doc9a', title: 'Vércukornapló értékelése', url: '#', type: 'evaluation' }
-    ]
-  },
-  {
-    id: '15',
-    content: 'Éves kontroll vizsgálat',
-    start: new Date('2024-03-20'),
-    documents: [
-      { id: 'doc10', title: 'Éves összefoglaló jelentés', url: '#', type: 'report' },
-      { id: 'doc10a', title: 'Következő évi terv', url: '#', type: 'plan' },
-      { id: 'doc10b', title: 'Összes laboreredmény', url: '#', type: 'lab_results' }
-    ]
-  }
+  { id: 'ev1', content: 'Első Vizsgálat és Diagnózis', start: new Date('2014-09-24') },
+  { id: 'ev2', content: 'Kontroll Vizsgálat (Javulás)', start: new Date('2015-03-24') },
+  { id: 'ev3', content: 'Kontroll Vizsgálat (Remisszió közeli)', start: new Date('2015-09-21') },
+  { id: 'ev4', content: 'Fellángolás', start: new Date('2016-04-07') },
+  { id: 'ev5', content: 'Első Biológiai Terápia Indítása (Adalimumab)', start: new Date('2016-07-09') },
+  { id: 'ev6', content: 'Kontroll Vizsgálat (Remisszió)', start: new Date('2017-03-06') },
+  { id: 'ev7', content: 'Fellángolás', start: new Date('2018-04-19') },
+  { id: 'ev8', content: 'Kontroll Vizsgálat (Stabilizálódás)', start: new Date('2018-10-25') },
+  { id: 'ev9', content: 'Fellángolás / Második Biológiai Terápia', start: new Date('2019-04-16') },
+  { id: 'ev10', content: 'Kontroll Vizsgálat (Enyhe javulás)', start: new Date('2019-10-17') },
+  { id: 'ev11', content: 'Kontroll Vizsgálat / Progresszió', start: new Date('2020-04-23') }
 ];
 
-// Betegségek és események gráf csomópontjai
+// Kovács Julianna (RA) gráf csomópontjai - FRISSÍTVE
 const patientNodes: GraphNode[] = [
-  // Betegségek
-  { id: 'hbp', label: 'Magas vérnyomás', type: 'disease' },
-  { id: 'diabetes', label: 'Cukorbetegség', type: 'disease' },
-  { id: 'lvh', label: 'Balkamra hipertrófia', type: 'disease' },
-  { id: 'retinopathy', label: 'Diabéteszes retinopátia', type: 'disease' },
-  
-  // Vizsgálatok és diagnózisok
-  { id: 'first_exam', label: 'Első vizsgálat', type: 'event', timestamp: new Date('2023-03-01') },
-  { id: 'hbp_diag', label: 'Magas vérnyomás diagnózis', type: 'event', timestamp: new Date('2023-03-01') },
-  { id: 'blood_test', label: 'Vércukor vizsgálat', type: 'event', timestamp: new Date('2023-03-05') },
-  { id: 'diabetes_diag', label: 'Cukorbetegség diagnózis', type: 'event', timestamp: new Date('2023-03-05') },
-  { id: 'diet_consult', label: 'Dietetikai tanácsadás', type: 'event', timestamp: new Date('2023-03-15') },
-  { id: 'cardio_exam', label: 'Kardiológiai vizsgálat', type: 'event', timestamp: new Date('2023-04-10') },
-  { id: 'lvh_diag', label: 'Balkamra hipertrófia diagnózis', type: 'event', timestamp: new Date('2023-04-10') },
-  { id: 'checkup', label: 'Kontroll vizsgálat', type: 'event', timestamp: new Date('2023-05-20') },
-  { id: 'eye_exam', label: 'Szemészeti vizsgálat', type: 'event', timestamp: new Date('2023-07-05') },
-  { id: 'retinopathy_diag', label: 'Retinopátia diagnózisa', type: 'event', timestamp: new Date('2023-07-05') },
-  { id: 'annual_exam', label: 'Éves kontroll vizsgálat', type: 'event', timestamp: new Date('2024-03-20') },
-  
-  // Kezelések
-  { id: 'hbp_med', label: 'Vérnyomáscsökkentő', type: 'event', timestamp: new Date('2023-03-10') },
-  { id: 'insulin', label: 'Inzulin', type: 'event', timestamp: new Date('2023-03-10') },
-  { id: 'new_hbp_med', label: 'Új vérnyomáscsökkentő', type: 'event', timestamp: new Date('2023-04-15') },
-  { id: 'insulin_adj', label: 'Inzulin adagolás módosítása', type: 'event', timestamp: new Date('2023-07-10') }
+  // Betegség
+  { id: 'ra', label: 'Rheumatoid Arthritis (M0580)', type: 'disease' },
+
+  // Vizsgálatok / Események
+  { id: 'diag1', label: 'Diagnózis Felállítása', type: 'event', timestamp: new Date('2014-09-24') },
+  { id: 'ctrl1', label: 'Kontroll (Javulás, DAS 3.2)', type: 'event', timestamp: new Date('2015-03-24') },
+  { id: 'ctrl2', label: 'Kontroll (Remisszió közeli, DAS 2.6)', type: 'event', timestamp: new Date('2015-09-21') },
+  { id: 'flare1', label: 'Fellángolás (DAS 5.4)', type: 'event', timestamp: new Date('2016-04-07') },
+  { id: 'bio1_start', label: 'Adalimumab Indítása', type: 'event', timestamp: new Date('2016-07-09') },
+  { id: 'ctrl3', label: 'Kontroll (Remisszió, DAS 2.8)', type: 'event', timestamp: new Date('2017-03-06') },
+  { id: 'flare2', label: 'Fellángolás (DAS 6.2)', type: 'event', timestamp: new Date('2018-04-19') },
+  { id: 'ctrl4', label: 'Kontroll (Stabilizálódás, DAS 4.8)', type: 'event', timestamp: new Date('2018-10-25') },
+  { id: 'bio2_start', label: 'Második Biológiai Terápia Indítása', type: 'event', timestamp: new Date('2019-04-16') },
+  { id: 'ctrl5', label: 'Kontroll (Enyhe javulás, DAS 4.3)', type: 'event', timestamp: new Date('2019-10-17') },
+  { id: 'progression', label: 'Progresszió (DAS 6.0)', type: 'event', timestamp: new Date('2020-04-23') },
+
+  // Gyógyszerek (mint események/állapotok)
+  { id: 'tx_nsaid', label: 'NSAID (Apranax)', type: 'event', timestamp: new Date('2014-09-24') },
+  { id: 'tx_mtx', label: 'Methotrexát + Folsav', type: 'event', timestamp: new Date('2014-09-24') },
+  { id: 'tx_pred1', label: 'Prednisolon (átmeneti)', type: 'event', timestamp: new Date('2016-04-07') },
+  { id: 'tx_bio1', label: 'Adalimumab', type: 'event', timestamp: new Date('2016-07-09') },
+  { id: 'tx_pred2', label: 'Prednisolon (átmeneti, emelt)', type: 'event', timestamp: new Date('2018-04-19') },
+  { id: 'tx_bio2', label: 'Második Biológiai Terápia', type: 'event', timestamp: new Date('2019-04-16') }
 ];
 
-// Kapcsolatok a betegségek és események között
+// Kovács Julianna (RA) gráf kapcsolatai - FRISSÍTVE
 const patientEdges: GraphEdge[] = [
-  // Diagnosztikai útvonalak
-  { from: 'first_exam', to: 'hbp_diag' },
-  { from: 'hbp_diag', to: 'hbp' },
-  { from: 'first_exam', to: 'blood_test' },
-  { from: 'blood_test', to: 'diabetes_diag' },
-  { from: 'diabetes_diag', to: 'diabetes' },
-  
-  // Kezelések
-  { from: 'hbp', to: 'hbp_med' },
-  { from: 'diabetes', to: 'insulin' },
-  { from: 'diabetes', to: 'diet_consult' },
-  
-  // Szövődmények és további vizsgálatok
-  { from: 'hbp', to: 'cardio_exam' },
-  { from: 'cardio_exam', to: 'lvh_diag' },
-  { from: 'lvh_diag', to: 'lvh' },
-  { from: 'lvh', to: 'new_hbp_med' },
-  { from: 'hbp_med', to: 'new_hbp_med', label: 'váltás' },
-  
-  // Kontrollok és követés
-  { from: 'hbp', to: 'checkup' },
-  { from: 'diabetes', to: 'checkup' },
-  { from: 'diabetes', to: 'eye_exam' },
-  { from: 'eye_exam', to: 'retinopathy_diag' },
-  { from: 'retinopathy_diag', to: 'retinopathy' },
-  { from: 'retinopathy', to: 'insulin_adj' },
-  
-  // Éves kontroll
-  { from: 'hbp', to: 'annual_exam' },
-  { from: 'diabetes', to: 'annual_exam' },
-  { from: 'lvh', to: 'annual_exam' },
-  { from: 'retinopathy', to: 'annual_exam' }
+  // Alap betegség és első diagnózis/kezelés
+  { from: 'diag1', to: 'ra' },
+  { from: 'ra', to: 'tx_nsaid' },
+  { from: 'ra', to: 'tx_mtx' },
+
+  // Kontrollok és állapotváltozások
+  { from: 'diag1', to: 'ctrl1' },
+  { from: 'ctrl1', to: 'ctrl2' },
+  { from: 'ctrl2', to: 'flare1', label: 'rosszabbodás' },
+
+  // Első fellángolás és terápiaváltás
+  { from: 'flare1', to: 'tx_pred1' },
+  { from: 'flare1', to: 'bio1_start', label: 'terápiaváltás' },
+  { from: 'bio1_start', to: 'tx_bio1' }, // Adalimumab maga a terápia
+  { from: 'tx_nsaid', to: 'bio1_start', label: 'leállítva?' }, // Feltételezés
+  { from: 'tx_mtx', to: 'bio1_start', label: 'folytatva' },
+
+  // Remisszió és újabb fellángolás
+  { from: 'bio1_start', to: 'ctrl3', label: 'javulás' },
+  { from: 'ctrl3', to: 'flare2', label: 'rosszabbodás' },
+  { from: 'flare2', to: 'tx_pred2' }, // Átmeneti szteroid
+  { from: 'flare2', to: 'ctrl4', label: 'stabilizálódás' },
+
+  // Második biológiai terápia
+  { from: 'ctrl4', to: 'bio2_start', label: 'terápiaváltás' },
+  { from: 'bio2_start', to: 'tx_bio2' }, // Második bio terápia
+  { from: 'tx_bio1', to: 'bio2_start', label: 'leállítva' }, // Adalimumab leállítva
+  { from: 'tx_mtx', to: 'bio2_start', label: 'folytatva' },
+
+  // Utolsó kontrollok és progresszió
+  { from: 'bio2_start', to: 'ctrl5', label: 'javulás' },
+  { from: 'ctrl5', to: 'progression', label: 'rosszabbodás' }
 ];
 
-// Idővonalon kiválasztott esemény -> gráf csomópont megfeleltetés
+// Idővonal -> Gráf ID map (frissítve Kovács Juliannához)
 const eventToNodeMap: Record<string, string> = {
-  '1': 'first_exam',
-  '2': 'hbp_diag',
-  '3': 'blood_test',
-  '4': 'diabetes_diag',
-  '5': 'hbp_med',
-  '6': 'insulin',
-  '7': 'diet_consult',
-  '8': 'cardio_exam',
-  '9': 'lvh_diag',
-  '10': 'new_hbp_med',
-  '11': 'checkup',
-  '12': 'eye_exam',
-  '13': 'retinopathy_diag',
-  '14': 'insulin_adj',
-  '15': 'annual_exam'
+  'ev1': 'diag1',
+  'ev2': 'ctrl1',
+  'ev3': 'ctrl2',
+  'ev4': 'flare1',
+  'ev5': 'bio1_start',
+  'ev6': 'ctrl3',
+  'ev7': 'flare2',
+  'ev8': 'ctrl4',
+  'ev9': 'bio2_start',
+  'ev10': 'ctrl5',
+  'ev11': 'progression'
 };
 
-// Gráf csomópont -> idővonalon kiválasztott esemény megfeleltetés
+// Gráf -> Idővonal ID map (automatikus)
 const nodeToEventMap: Record<string, string> = Object.entries(eventToNodeMap).reduce(
   (acc: Record<string, string>, [key, value]) => {
     acc[value] = key;
     return acc;
-  }, 
+  },
   {}
 );
 
@@ -252,54 +122,89 @@ interface AppointmentSlot extends AppointmentEvent {
   isSelected?: boolean;
 }
 
-// Szintetikus metrika-idősorok generálása
+// Szintetikus metrika-idősorok generálása - FRISSÍTVE (RA + Fiktív adatok)
 const metricTimeSeries = {
+  'DAS28': [
+    { date: '2014-09-24', value: 5.8 },
+    { date: '2015-03-24', value: 3.2 },
+    { date: '2015-09-21', value: 2.6 },
+    { date: '2016-04-07', value: 5.4 },
+    { date: '2016-07-09', value: 5.6 },
+    { date: '2017-03-06', value: 2.8 },
+    { date: '2018-04-19', value: 6.2 },
+    { date: '2018-10-25', value: 4.8 },
+    { date: '2019-04-16', value: 5.5 },
+    { date: '2019-10-17', value: 4.3 },
+    { date: '2020-04-23', value: 6.0 }
+  ],
+  'CRP': [
+    { date: '2014-09-24', value: 38 },
+    { date: '2015-03-24', value: 9 },
+    { date: '2015-09-21', value: 4 },
+    { date: '2016-04-07', value: 35 },
+    { date: '2016-07-09', value: 31 },
+    { date: '2017-03-06', value: 3 },
+    { date: '2018-04-19', value: 58 },
+    { date: '2018-10-25', value: 33 },
+    { date: '2019-04-16', value: 48 },
+    { date: '2019-10-17', value: 37 },
+    { date: '2020-04-23', value: 51 }
+  ],
+  'Süllyedés (We)': [
+    { date: '2015-03-24', value: 22 }, // 2014 nincs adat
+    { date: '2015-09-21', value: 14 },
+    { date: '2016-04-07', value: 42 },
+    { date: '2016-07-09', value: 39 },
+    { date: '2017-03-06', value: 12 },
+    { date: '2018-04-19', value: 65 },
+    { date: '2018-10-25', value: 41 },
+    { date: '2019-04-16', value: 59 },
+    { date: '2019-10-17', value: 41 },
+    { date: '2020-04-23', value: 69 }
+  ],
   'Vérnyomás': [
-    { date: '2023-03-15', systolic: 165, diastolic: 95 },
-    { date: '2023-04-10', systolic: 158, diastolic: 92 },
-    { date: '2023-05-18', systolic: 142, diastolic: 85 },
-    { date: '2023-07-10', systolic: 135, diastolic: 82 },
-    { date: '2024-03-20', systolic: 130, diastolic: 80 }
-  ],
-  'Éhomi vércukor': [
-    { date: '2023-04-02', value: 8.2 },
-    { date: '2023-06-20', value: 6.8 },
-    { date: '2024-03-20', value: 6.2 }
-  ],
-  'BMI': [
-    { date: '2023-03-15', value: 30.9 },
-    { date: '2023-06-20', value: 29.7 },
-    { date: '2024-03-20', value: 28.1 }
-  ],
-  'Koleszterin': [
-    { date: '2023-04-02', value: 6.2 },
-    { date: '2023-06-20', value: 5.9 },
-    { date: '2024-03-20', value: 5.4 }
+    { date: '2019-01-15', systolic: 135, diastolic: 88 }, // Fiktív korábbi
+    { date: '2019-07-20', systolic: 132, diastolic: 86 }, // Fiktív
+    { date: '2020-04-23', systolic: 130, diastolic: 85 }  // Fiktív utolsó
   ],
   'Napi lépésszám': [
-    { date: '2023-03-15', value: 4000 },
-    { date: '2023-04-10', value: 6000 },
-    { date: '2023-06-20', value: 8500 },
-    { date: '2024-03-20', value: 10000 }
+    { date: '2019-01-15', value: 2500 }, // Fiktív - CSÖKKENTVE
+    { date: '2019-07-20', value: 2800 }, // Fiktív - CSÖKKENTVE
+    { date: '2020-04-23', value: 3000 }  // Fiktív - CSÖKKENTVE
+  ],
+  'Állapot': [
+    { date: '2014-09-24', value: 4 }, // Diagnózis (Magas akt.)
+    { date: '2015-03-24', value: 3 }, // Javulás (Mérsékelt akt.)
+    { date: '2015-09-21', value: 2 }, // Remisszió közeli (Alacsony akt.)
+    { date: '2016-04-07', value: 4 }, // Fellángolás (Magas akt.)
+    { date: '2016-07-09', value: 4 }, // Biológiai terápia indítása (Magas akt.)
+    { date: '2017-03-06', value: 1 }, // Remisszió
+    { date: '2018-04-19', value: 4 }, // Fellángolás (Magas akt.)
+    { date: '2018-10-25', value: 3 }, // Stabilizálódás (Magas akt. de javult)
+    { date: '2019-04-16', value: 4 }, // Fellángolás / Terápiaváltás (Magas akt.)
+    { date: '2019-10-17', value: 3 }, // Enyhe javulás (Magas akt. de javult)
+    { date: '2020-04-23', value: 4 }  // Progresszió (Magas akt.)
   ]
 };
 
+// Metrika leírások - FRISSÍTVE (RA + Fiktív adatok)
 const metricDescriptions: Record<string, string> = {
-  'Vérnyomás': 'A vérnyomás a keringési rendszer állapotát mutatja. A normál érték 120/80 mmHg körül van. A magas vérnyomás növeli a szív- és érrendszeri betegségek kockázatát.',
-  'Éhomi vércukor': 'Az éhomi vércukor a cukorbetegség diagnosztikájában és követésében fontos. Normál értéke 3.9-5.5 mmol/L.',
-  'BMI': 'A testtömegindex (BMI) a testsúly és a magasság arányát mutatja. 18,5-24,9 között normális, 25 felett túlsúlyos.',
-  'Koleszterin': 'A koleszterin szint a szív- és érrendszeri kockázatot jelzi. Normál érték <5,2 mmol/L.',
-  'Napi lépésszám': 'A napi lépésszám a fizikai aktivitás mérőszáma. Az ajánlott cél 8-10 ezer lépés naponta.'
+  'DAS28': 'Disease Activity Score 28: Összetett mutató a Rheumatoid Arthritis aktivitásának mérésére. Magas érték magas aktivitást jelez.',
+  'CRP': 'C-reaktív protein: Gyulladásos marker a vérben. Emelkedett szintje aktív gyulladásra utal. Normál: < 5-10 mg/L.',
+  'Süllyedés (We)': 'Vörösvértest süllyedés: Szintén gyulladásos marker. Magasabb érték gyulladást jelez. Normál: < 20-30 mm/h.',
+  'Állapot': 'A betegség aktivitásának/progressziójának szubjektív/kvantifikált mérőszáma (1:Remisszió, 4:Magas akt./Progresszió).',
+  'Vérnyomás': 'A vérnyomás a keringési rendszer állapotát mutatja. A normál érték 120/80 mmHg körül van.',
+  'Napi lépésszám': 'A napi lépésszám a fizikai aktivitás mérőszáma. RA esetén az aktivitás korlátozott lehet.'
 };
 
 const statusDescriptions = [
-  { label: 'Normál', color: '#4CAF50', desc: 'Az érték az egészséges tartományban van.' },
-  { label: 'Figyelmeztető', color: '#FFC107', desc: 'Az érték a normálistól eltér, de nem kritikus.' },
-  { label: 'Kritikus', color: '#F44336', desc: 'Az érték jelentősen eltér a normálistól, orvosi beavatkozás szükséges lehet.' }
+  { label: 'Normál/Remisszió', color: '#4CAF50', desc: 'Az érték/állapot megfelelő vagy a betegség inaktív.' },
+  { label: 'Enyhe/Mérsékelt Aktivitás/Figyelmeztető', color: '#FFC107', desc: 'Az érték/állapot eltér a normálistól, figyelmet igényel.' },
+  { label: 'Magas Aktivitás/Progresszió/Kritikus', color: '#F44336', desc: 'Jelentős eltérés vagy betegségaktivitás.' }
 ];
 
-// A metrikák típusai
-const metricKeys = ['Vérnyomás', 'BMI', 'Napi lépésszám', 'Éhomi vércukor', 'Koleszterin'] as const;
+// A metrikák típusai - FRISSÍTVE (RA + Fiktív adatok)
+const metricKeys = ['DAS28', 'CRP', 'Süllyedés (We)', 'Vérnyomás', 'Napi lépésszám', 'Állapot'] as const;
 type MetricKey = typeof metricKeys[number];
 
 const App: React.FC = () => {
@@ -524,126 +429,37 @@ const App: React.FC = () => {
   };
 
   const handleSendMessage = async (message: string, callback: (response: string) => void) => {
+    if (!CHAT_WEBHOOK_URL) {
+      console.error('CHAT_WEBHOOK_URL is not defined. Cannot send message.');
+      callback("Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).");
+      return;
+    }
+    
+    // Add loading state or indicator if desired
+    console.log('Üzenet küldése a webhookra:', CHAT_WEBHOOK_URL);
     try {
-      // Formázott metrika objektum létrehozása
-      const currentMetric = selectedMetric ? healthMetrics.find(m => m.title === selectedMetric) : null;
-      const formattedMetric = currentMetric ? {
-        name: currentMetric.title,
-        value: currentMetric.value,
-        unit: currentMetric.unit,
-        status: currentMetric.status,
-        description: selectedMetric ? metricDescriptions[selectedMetric] : ''
-      } : null;
-
-      // Formázott esemény objektum létrehozása
-      const currentEvent = selectedEvent ? patientEvents.find(e => e.id === selectedEvent) : null;
-      const formattedEvent = currentEvent ? {
-        content: currentEvent.content,
-        start: format(new Date(currentEvent.start), 'yyyy-MM-dd'),
-        documents: currentEvent.documents
-      } : null;
-
-      // Formázott csomópont objektum létrehozása
-      const currentNode = selectedNode ? patientNodes.find(n => n.id === selectedNode) : null;
-      const formattedNode = currentNode ? {
-        id: currentNode.id,
-        label: currentNode.label,
-        type: currentNode.type,
-        timestamp: currentNode.timestamp ? format(currentNode.timestamp, 'yyyy-MM-dd') : undefined
-      } : null;
-
-      // Kapcsolódó csomópontok keresése
-      const relatedNodes = selectedNode ? 
-        patientNodes.filter(node => 
-          patientEdges.some(edge => 
-            (edge.from === selectedNode && edge.to === node.id) || 
-            (edge.to === selectedNode && edge.from === node.id)
-          )
-        ).map(node => ({
-          id: node.id,
-          label: node.label,
-          type: node.type
-        })) : [];
-
-      const requestBody = {
-        message: message,
-        timestamp: new Date().toISOString(),
-        context: {
-          selectedMetric: formattedMetric,
-          selectedEvent: formattedEvent,
-          selectedNode: formattedNode,
-          relatedNodes: relatedNodes,
-          visibleNodes: visibleNodes.map(node => ({
-            id: node.id,
-            label: node.label,
-            type: node.type
-          })),
-          visibleEdges: visibleEdges.map(edge => ({
-            from: edge.from,
-            to: edge.to,
-            label: edge.label
-          }))
-        }
-      };
-
-      console.log('Küldés a webhooknak:', requestBody);
-
       const response = await fetch(CHAT_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({ message: message }),
       });
 
-      const data = await response.json();
-      console.log('Válasz a webhoktól:', data);
-
-      // Ellenőrizzük, hogy van-e válasz egyáltalán
-      if (!data) {
-        throw new Error('Üres válasz érkezett a szervertől');
+      if (!response.ok) {
+        throw new Error(`Webhook hiba: ${response.statusText}`);
       }
 
-      // Ha string a válasz, ellenőrizzük, hogy calendar-related szöveg-e
-      if (typeof data.response === 'string') {
-        const response = data.response.toLowerCase();
-        console.log('Válasz szöveg ellenőrzése:', response);
-        
-        // Ha a válasz tartalmazza a naptárral kapcsolatos kulcsszavakat
-        if (response.includes('naptár') || response.includes('időpont')) {
-          console.log('Naptár-related válasz detektálva, naptár megnyitása...');
-          const success = await openAppointmentCalendar();
-          console.log('Naptár megnyitás eredménye:', success);
-          if (success) {
-            callback(data.response);
-          } else {
-            callback('Sajnos nem sikerült megnyitni a naptárat. Kérem, próbálja újra.');
-          }
-          return;
-        }
-        
-        // Ha nem naptár-related, egyszerűen visszaadjuk a választ
-        callback(data.response);
-        return;
-      }
+      const result = await response.json();
+      console.log('Webhook válasz:', result);
 
-      // Ha van message vagy output property, azt használjuk
-      if (data.message) {
-        callback(data.message);
-        return;
-      }
-
-      if (data.output) {
-        callback(data.output);
-        return;
-      }
-
-      // Fallback válasz
-      callback('Sajnos nem kaptam értelmezhető választ.');
+      // Assuming the webhook response has a field containing the bot's reply
+      const reply = result.reply || result.message || "Nem érkezett érdemi válasz."; 
+      callback(reply);
 
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
-      callback('Sajnos hiba történt az üzenet feldolgozása során.');
+      console.error('Hiba az üzenetküldés során:', error);
+      callback(`Hiba történt az üzenetküldés során: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -656,6 +472,15 @@ const App: React.FC = () => {
         `Időpont kiválasztva: ${format(new Date(slot.start), 'yyyy-MM-dd HH:mm')}\nKérem várjon, amíg elkészül a vizsgálat előkészítő dokumentum, amit a kezelőorvosa fog megkapni.`, 
         'user'
       );
+
+      if (!CHAT_WEBHOOK_URL) {
+        console.error('CHAT_WEBHOOK_URL is not defined. Cannot send slot selection.');
+        chatboxRef.current?.addMessage(
+          "Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).",
+          'assistant'
+        );
+        return;
+      }
 
       const response = await fetch(CHAT_WEBHOOK_URL, {
         method: 'POST',
@@ -725,6 +550,15 @@ const App: React.FC = () => {
 
   const handleConfirmAppointment = async () => {
     try {
+      if (!CHAT_WEBHOOK_URL) {
+        console.error('Hiba: REACT_APP_N8N_WEBHOOK_URL nincs beállítva.');
+        chatboxRef.current?.addMessage(
+          'Hiba: Az időpontfoglalás véglegesítése jelenleg nem lehetséges (konfigurációs hiba).',
+          'assistant'
+        );
+        return;
+      }
+
       const response = await fetch(CHAT_WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -765,42 +599,49 @@ const App: React.FC = () => {
     }
   };
 
-  // Demo egészségügyi mérőszámok
+  // Demo egészségügyi mérőszámok - FRISSÍTVE (RA + Fiktív adatok - utolsó állapot)
   const healthMetrics = [
+    {
+      icon: '📈',
+      title: 'DAS28',
+      value: '6.0',
+      unit: '',
+      status: 'critical' // Magas aktivitás
+    },
+    {
+      icon: '🔥',
+      title: 'CRP',
+      value: '51',
+      unit: 'mg/L',
+      status: 'critical' // Magas gyulladás
+    },
+    {
+      icon: '⏳',
+      title: 'Süllyedés (We)',
+      value: '69',
+      unit: 'mm/h',
+      status: 'critical' // Magas gyulladás
+    },
     {
       icon: '🫀',
       title: 'Vérnyomás',
-      value: '145/95',
+      value: '130/85', // Fiktív utolsó
       unit: 'mmHg',
-      status: 'warning'
-    },
-    {
-      icon: '⚖️',
-      title: 'BMI',
-      value: '27.5',
-      unit: 'kg/m²',
-      status: 'warning'
+      status: 'normal' // Fiktív
     },
     {
       icon: '👣',
       title: 'Napi lépésszám',
-      value: '8500',
+      value: '3000', // Fiktív utolsó - CSÖKKENTVE
       unit: 'lépés',
-      status: 'normal'
+      status: 'normal' // Fiktív
     },
     {
-      icon: '🩸',
-      title: 'Éhomi vércukor',
-      value: '7.2',
-      unit: 'mmol/L',
-      status: 'critical'
-    },
-    {
-      icon: '🔬',
-      title: 'Koleszterin',
-      value: '5.8',
-      unit: 'mmol/L',
-      status: 'warning'
+      icon: 'ℹ️',
+      title: 'Állapot',
+      value: 'Progresszió',
+      unit: '',
+      status: 'critical' // Utolsó bejegyzés alapján
     }
   ];
 
@@ -842,10 +683,10 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <div className="header-container">
-        <h1>Kovács István betegségtörténete</h1>
+        <h1>Kovács Julianna betegségtörténete (RA)</h1>
         <div className="patient-info">
           <div className="basic-info">
-            52 éves férfi, 2023 márciusában diagnosztizált magas vérnyomással és cukorbetegséggel
+            62 éves nő (2020-as adat), 2014-ben diagnosztizált Rheumatoid Arthritis-szal
           </div>
         </div>
       </div>
@@ -885,17 +726,17 @@ const App: React.FC = () => {
             <h3 style={{ marginBottom: 10, textAlign: 'center', fontWeight: 600, fontSize: 20 }}>{selectedMetric} időbeli alakulása</h3>
             <div style={{ width: '100%', paddingRight: 20 }}>
               <ResponsiveContainer width="100%" height={100}>
-                <LineChart data={metricTimeSeries[selectedMetric as MetricKey] || []}>
+                <LineChart data={metricTimeSeries[selectedMetric as keyof typeof metricTimeSeries] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
-                  <YAxis yAxisId="left" domain={['auto', 'auto']} />
+                  <YAxis yAxisId="left" domain={selectedMetric === 'Állapot' ? [0, 5] : ['auto', 'auto']} />
                   {selectedMetric === 'Vérnyomás' ? (
                     <>
-                      <Line yAxisId="left" type="monotone" dataKey="systolic" stroke="#e53935" name="Szisztolés" />
-                      <Line yAxisId="left" type="monotone" dataKey="diastolic" stroke="#1e88e5" name="Diasztolés" />
+                      <Line yAxisId="left" type="monotone" dataKey="systolic" stroke="#e53935" name="Szisztolés" dot={false} />
+                      <Line yAxisId="left" type="monotone" dataKey="diastolic" stroke="#1e88e5" name="Diasztolés" dot={false}/>
                     </>
                   ) : (
-                    <Line yAxisId="left" type="monotone" dataKey="value" stroke="#43a047" name={selectedMetric} />
+                    <Line yAxisId="left" type="monotone" dataKey="value" stroke="#43a047" name={selectedMetric || 'Érték'} dot={false}/>
                   )}
                   <Tooltip formatter={(value: any, name: string) => [`${value}`, name]} />
                 </LineChart>
