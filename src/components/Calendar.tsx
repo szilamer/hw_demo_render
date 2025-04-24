@@ -41,8 +41,17 @@ const Calendar: React.FC<CalendarProps> = ({ onBack, suggestedSlots, onSelectSlo
   };
 
   return (
-    <div className="calendar-container" style={{ height: '100%', padding: '20px' }}>
-      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div 
+      className="calendar-container" 
+      style={{ 
+        padding: '20px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100%',
+        width: '100%'
+      }}
+    >
+      <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <button 
           onClick={onBack}
           style={{
@@ -67,20 +76,21 @@ const Calendar: React.FC<CalendarProps> = ({ onBack, suggestedSlots, onSelectSlo
           </div>
         )}
       </div>
-      <div style={{ height: 'calc(100% - 60px)' }}>
+      <div style={{ flexGrow: 1, minHeight: 0, width: '100%' }}>
         <BigCalendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: '100%' }}
+          style={{ height: '100%', width: '100%' }}
           messages={{
             next: "Következő",
             previous: "Előző",
             today: "Ma",
             month: "Hónap",
             week: "Hét",
-            day: "Nap"
+            day: "Nap",
+            agenda: "Agenda"
           }}
           onSelectEvent={handleSelectEvent}
           eventPropGetter={(event: AppointmentEvent) => ({

@@ -14,14 +14,12 @@ interface DocumentViewerProps {
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) => {
-  // PDF elérési útvonal meghatározása - labor leletek és kórlapok kezelése
+  // PDF elérési útvonal meghatározása
   const getDocumentPath = (url: string) => {
-    // Ellenőrizzük, hogy labor lelet-e a dokumentum
-    if (url.startsWith('lab_')) {
-      return `/documents/${url}`;
-    }
-    // Egyébként a standard API végpont
-    return `/api/documents/download/${url}`;
+    // Feltételezzük, hogy a szerver a /documents/ útvonal alatt szolgálja ki
+    // a Dockerfile-ban másolt /app/src/documents tartalmát.
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `/documents/${cleanUrl}`;
   };
 
   return (

@@ -20,6 +20,9 @@ COPY . .
 # Set the environment variable for the build process
 ENV REACT_APP_N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL_ARG
 
+# Ensure the dist directory is clean before building
+RUN rm -rf dist
+
 # Run the build script (builds frontend and server)
 # This will now embed the REACT_APP_N8N_WEBHOOK_URL into the frontend code
 RUN npm run build
@@ -40,7 +43,7 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 
 # Copy the actual documents from the builder stage to the location expected by the server
-COPY --from=builder /app/src/documents ./src/documents
+COPY --from=builder /app/src/documents /app/src/documents
 
 # Expose the port the app runs on
 # Default is 3001 from src/server/index.ts, but can be overridden by PORT env var

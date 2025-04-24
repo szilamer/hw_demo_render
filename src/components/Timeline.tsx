@@ -16,7 +16,12 @@ export interface TimelineItem {
   id: string;
   content: string;
   start: Date;
-  documents?: Document[];
+  end?: Date;
+  group?: string;
+  type?: 'point' | 'range' | 'background';
+  style?: string; // Optional inline style
+  className?: string; // Opcionális CSS osztály
+  documents?: Document[]; // Kapcsolódó dokumentumok
   description?: string;
 }
 

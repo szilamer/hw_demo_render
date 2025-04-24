@@ -1,0 +1,41 @@
+# Docker ignore file
+
+# Git repository
+.git
+
+# Dependencies
+node_modules
+
+# Build artifacts (if not needed directly in final stage's COPY)
+# dist 
+# build
+
+# Dockerfile and ignore files
+Dockerfile
+.dockerignore
+
+# Large data files/dirs not needed in image
+hw-demo-app-latest.tar
+PatientDatas/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Parcel cache
+.parcel-cache 

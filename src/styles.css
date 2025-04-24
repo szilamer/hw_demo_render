@@ -50,7 +50,7 @@ h1, h2, h3, h4 {
 /* Timeline stílusok */
 .timeline-container {
   width: calc(100% - 30px); /* Kompenzáljuk a padding-ot */
-  height: 250px;
+  height: 300px; /* Megnövelt magasság */
   border: 1px solid #ccc;
   border-radius: 12px;  /* Kerekebb sarkok */
   padding: 15px;
@@ -62,7 +62,7 @@ h1, h2, h3, h4 {
 
 .timeline-inner {
   width: 100%;
-  height: 200px;
+  height: 250px; /* Megnövelt magasság */
 }
 
 /* Fő tartalom stílusok */
@@ -88,16 +88,18 @@ h1, h2, h3, h4 {
   padding: 15px;
   background-color: white;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  min-height: 0;
+  min-height: 400px; /* Változtatás: min-height: 0 helyett fix minimum */
   box-sizing: border-box;
-  max-height: 700px;
-  overflow-y: auto;
+  /* max-height: 700px; */ /* Törölve */
+  /* overflow-y: auto; */  /* Törölve (vagy legyen hidden?) */
+  overflow: hidden; /* ÚJ: Biztosítja, hogy a tartalom ne lógjon ki */
 }
 
 .graph-inner,
 .chatbox-inner {
   flex: 1;
-  min-height: 0; /* Fontos a flex konténer túlcsordulásának megakadályozásához */
+  /* min-height: 0; */ /* Törölve */
+  height: 100%; /* ÚJ: Explicit magasság */
   position: relative;
 }
 
@@ -740,4 +742,38 @@ h1, h2, h3, h4 {
 
 .document-button:hover {
   background-color: #bbdefb;
+}
+
+/* Naptár és overlay stílusok */
+.overlay-base {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.97);
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Biztosítjuk, hogy a naptár a graph-container-en belül jelenjen meg */
+.graph-container {
+  position: relative; /* Ez fontos, hogy az abszolút pozícionált elemeket befoglalja */
+}
+
+.calendar-container {
+  z-index: 200; /* Magasabb z-index, hogy a többi elem fölött legyen */
+}
+
+.overlay-content {
+  width: 95%;
+  height: 95%;
+  max-width: none;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  overflow-y: auto;
 } 

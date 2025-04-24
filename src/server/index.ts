@@ -16,7 +16,11 @@ app.use(express.json());
 // API routes
 app.use('/api/documents', documentHandler);
 
-// Serve static files from the frontend build directory
+// ÚJ SORREND: Serve documents from the /app/src/documents directory under the /documents URL path
+const documentsPath = path.resolve('/app/src/documents'); // Javított, abszolút útvonal a konténeren belül
+app.use('/documents', express.static(documentsPath));
+
+// ÚJ SORREND: Serve static files from the frontend build directory
 const frontendDistPath = path.join(__dirname, '..'); 
 app.use(express.static(frontendDistPath));
 

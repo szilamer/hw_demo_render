@@ -1,63 +1,25 @@
 import React, { useEffect, useRef } from 'react';
-import { Network } from 'vis-network/standalone';
+import { Network } from 'vis-network/standalone/esm/vis-network';
 import 'vis-network/styles/vis-network.css';
+import { FaDisease, FaStethoscope, FaFlask, FaNotesMedical, FaFileAlt, FaSyringe, FaHeartbeat } from 'react-icons/fa';
 
-// Node típusok ikonjai
+// --- Node Styles ---
 const NODE_ICONS = {
-  disease: {
-    shape: 'icon',
-    icon: {
-      face: '"Font Awesome 6 Free"',
-      code: '\uf469',  // user-md ikon
-      size: 80,        // Még nagyobb ikon méret
-      color: '#ff7675',
-    },
-    size: 100         // Még nagyobb node méret
-  },
-  event: {
-    shape: 'icon',
-    icon: {
-      face: '"Font Awesome 6 Free"',
-      code: '\uf073',  // calendar ikon
-      size: 80,        // Még nagyobb ikon méret
-      color: '#74b9ff',
-    },
-    size: 100         // Még nagyobb node méret
-  },
-  lab: {
-    shape: 'icon',
-    icon: {
-      face: '"Font Awesome 6 Free"',
-      code: '\uf0f5',  // flask ikon
-      size: 80,        // Még nagyobb ikon méret
-      color: '#55efc4',
-    },
-    size: 100         // Még nagyobb node méret
-  },
-  labValue: {
-    shape: 'box',
-    color: {
-      background: '#81ecec',
-      border: '#00cec9',
-      highlight: {
-        background: '#00cec9',
-        border: '#00b894'
-      }
-    },
-    font: {
-      color: '#2d3436',
-      size: 14
-    },
-    borderWidth: 2,
-    shadow: true
-  }
+  disease: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf7fa', size: 100, color: '#e74c3c' }, size: 60 }, // FaDisease (Méretek duplázva)
+  event: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf0f1', size: 100, color: '#3498db' }, size: 60 }, // FaStethoscope (Méretek duplázva)
+  lab: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf0c3', size: 100, color: '#2ecc71' }, size: 60 }, // FaFlask (Méretek duplázva)
+  labValue: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf481', size: 80, color: '#f1c40f' }, size: 50 }, // FaNotesMedical (Méretek duplázva)
+  document: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf15c', size: 80, color: '#95a5a6' }, size: 50 }, // FaFileAlt (Méretek duplázva)
+  treatment: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf48e', size: 80, color: '#8e44ad' }, size: 50 }, // FaSyringe (Méretek duplázva)
+  symptom: { shape: 'icon', icon: { face: 'FontAwesome', code: '\uf21e', size: 80, color: '#e67e22' }, size: 50 } // FaHeartbeat (Méretek duplázva)
 };
 
 export interface GraphNode {
   id: string;
   label: string;
-  type: 'disease' | 'event' | 'lab' | 'labValue';
+  type: 'disease' | 'event' | 'treatment' | 'lab' | 'labValue' | 'symptom' | 'document';
   timestamp?: Date;
+  className?: string;
   description?: string;
 }
 
@@ -65,6 +27,7 @@ export interface GraphEdge {
   from: string;
   to: string;
   label?: string;
+  className?: string;
 }
 
 interface GraphProps {
@@ -84,7 +47,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
       const data = {
         nodes: nodes.map(node => {
           // Alapértelmezett node típus event, ha nincs megadva vagy nem ismert
-          const nodeType = NODE_ICONS[node.type] || NODE_ICONS.event;
+          const nodeTypeStyle = NODE_ICONS[node.type] || NODE_ICONS.event;
           
           // Lab típusú node kezelése
           if (node.id.startsWith('lab_node_')) {
@@ -125,7 +88,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
           // Alapértelmezett formázás
           return {
             ...node,
-            ...nodeType,
+            ...nodeTypeStyle,
             label: node.timestamp 
               ? `${node.label}\n${node.timestamp.toLocaleDateString('hu-HU')}`
               : node.label,
@@ -157,15 +120,15 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
       // Gráf beállítások
       const options = {
         nodes: {
-          size: 100,       // Nagyobb alapértelmezett méret
+          // size: 100, // Ezt most a NODE_ICONS.size vezérli
           font: {
             size: 20,      // Nagyobb betűméret
-            vadjust: -120  // Címke pozíciójának igazítása a nagyobb mérethez
+            vadjust: -70 // Címke pozíciójának igazítása (nagyobbra állítva az ikon alá)
           },
           shadow: {
             enabled: true,
             color: 'rgba(0,0,0,0.2)',
-            size: 20,      // Nagyobb árnyék
+            size: 20,
             x: 8,
             y: 8
           }
@@ -174,21 +137,21 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
           arrows: {
             to: {
               enabled: true,
-              scaleFactor: 2  // Nagyobb nyilak
+              scaleFactor: 2
             }
           },
-          width: 4,           // Vastagabb élek
+          width: 4,
           smooth: {
             enabled: true,
             type: 'cubicBezier',
             roundness: 0.5
           },
           color: {
-            color: '#2c3e50',      // Sötétebb szín az éleknek
-            highlight: '#3498db',   // Élénkebb kiemelő szín
-            opacity: 1.0           // Teljes átlátszatlanság
+            color: '#2c3e50',
+            highlight: '#3498db',
+            opacity: 1.0
           },
-          shadow: {              // Árnyék az éleknek is
+          shadow: {
             enabled: true,
             color: 'rgba(0,0,0,0.2)',
             size: 10
@@ -199,7 +162,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
           barnesHut: {
             gravitationalConstant: -80000,
             springConstant: 0.001,
-            springLength: 300     // Nagyobb távolság a node-ok között
+            springLength: 400     // Növelt távolság a nagyobb node-ok miatt
           }
         },
         interaction: {
