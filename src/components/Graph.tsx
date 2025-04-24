@@ -23,13 +23,40 @@ const NODE_ICONS = {
       color: '#74b9ff',
     },
     size: 100         // Még nagyobb node méret
+  },
+  lab: {
+    shape: 'icon',
+    icon: {
+      face: '"Font Awesome 6 Free"',
+      code: '\uf0f5',  // flask ikon
+      size: 80,        // Még nagyobb ikon méret
+      color: '#55efc4',
+    },
+    size: 100         // Még nagyobb node méret
+  },
+  labValue: {
+    shape: 'box',
+    color: {
+      background: '#81ecec',
+      border: '#00cec9',
+      highlight: {
+        background: '#00cec9',
+        border: '#00b894'
+      }
+    },
+    font: {
+      color: '#2d3436',
+      size: 14
+    },
+    borderWidth: 2,
+    shadow: true
   }
 };
 
 export interface GraphNode {
   id: string;
   label: string;
-  type: 'disease' | 'event';
+  type: 'disease' | 'event' | 'lab' | 'labValue';
   timestamp?: Date;
   description?: string;
 }
@@ -55,26 +82,68 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
     if (containerRef.current && nodes.length > 0) {
       // Adatok előkészítése
       const data = {
-        nodes: nodes.map(node => ({
-          ...node,
-          ...NODE_ICONS[node.type],
-          label: node.timestamp 
-            ? `${node.label}\n${node.timestamp.toLocaleDateString('hu-HU')}`
-            : node.label,
-          font: { 
-            color: node.type === 'disease' ? '#ff7675' : '#74b9ff',
-            size: 14,
-            face: 'Arial',
-            multi: 'html',
-            bold: {
+        nodes: nodes.map(node => {
+          // Alapértelmezett node típus event, ha nincs megadva vagy nem ismert
+          const nodeType = NODE_ICONS[node.type] || NODE_ICONS.event;
+          
+          // Lab típusú node kezelése
+          if (node.id.startsWith('lab_node_')) {
+            return {
+              ...node,
+              ...NODE_ICONS.lab,
+              label: node.timestamp 
+                ? `${node.label}\n${node.timestamp.toLocaleDateString('hu-HU')}`
+                : node.label,
+              font: { 
+                color: '#55efc4',
+                size: 14,
+                face: 'Arial',
+                multi: 'html',
+                bold: {
+                  color: '#55efc4',
+                  size: 14,
+                  face: 'Arial'
+                },
+                background: 'white'
+              },
+              title: node.description || node.label
+            };
+          }
+          
+          // Lab érték node kezelése
+          if (node.id.startsWith('lab_crp_') || node.id.startsWith('lab_we_')) {
+            return {
+              ...node,
+              ...NODE_ICONS.labValue,
+              label: node.timestamp 
+                ? `${node.label}\n${node.timestamp.toLocaleDateString('hu-HU')}`
+                : node.label,
+              title: node.description || node.label
+            };
+          }
+          
+          // Alapértelmezett formázás
+          return {
+            ...node,
+            ...nodeType,
+            label: node.timestamp 
+              ? `${node.label}\n${node.timestamp.toLocaleDateString('hu-HU')}`
+              : node.label,
+            font: { 
               color: node.type === 'disease' ? '#ff7675' : '#74b9ff',
               size: 14,
-              face: 'Arial'
+              face: 'Arial',
+              multi: 'html',
+              bold: {
+                color: node.type === 'disease' ? '#ff7675' : '#74b9ff',
+                size: 14,
+                face: 'Arial'
+              },
+              background: 'white'
             },
-            background: 'white'
-          },
-          title: node.description || node.label
-        })),
+            title: node.description || node.label
+          };
+        }),
         edges: edges.map(edge => ({
           ...edge,
           arrows: 'to',
@@ -160,7 +229,7 @@ const Graph: React.FC<GraphProps> = ({ nodes, edges, onSelect }) => {
             tooltipRef.current.innerHTML = `
               <div class="tooltip-content">
                 <h3>${node.label}</h3>
-                <p>Típus: ${node.type === 'disease' ? 'Betegség' : 'Esemény'}</p>
+                <p>Típus: ${node.type === 'disease' ? 'Betegség' : node.type === 'lab' ? 'Laborvizsgálat' : node.type === 'labValue' ? 'Labor érték' : 'Esemény'}</p>
                 ${node.timestamp ? `<p>Dátum: ${node.timestamp.toLocaleDateString('hu-HU')}</p>` : ''}
                 ${node.description ? `<p>${node.description}</p>` : ''}
               </div>

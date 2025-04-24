@@ -14,6 +14,16 @@ interface DocumentViewerProps {
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) => {
+  // PDF elérési útvonal meghatározása - labor leletek és kórlapok kezelése
+  const getDocumentPath = (url: string) => {
+    // Ellenőrizzük, hogy labor lelet-e a dokumentum
+    if (url.startsWith('lab_')) {
+      return `/documents/${url}`;
+    }
+    // Egyébként a standard API végpont
+    return `/api/documents/download/${url}`;
+  };
+
   return (
     <div className="document-viewer-overlay">
       <div className="document-viewer-content">
@@ -24,14 +34,14 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
         <div className="document-viewer-body">
           {document.type === 'pdf' ? (
             <iframe 
-              src={`/api/documents/download/${document.url}`} 
+              src={getDocumentPath(document.url)} 
               width="100%" 
               height="500px" 
               title={document.title}
             />
           ) : document.type === 'image' ? (
             <img 
-              src={`/api/documents/download/${document.url}`} 
+              src={getDocumentPath(document.url)} 
               alt={document.title} 
               style={{ maxWidth: '100%', maxHeight: '500px' }} 
             />
