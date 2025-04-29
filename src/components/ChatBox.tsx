@@ -14,6 +14,7 @@ interface ChatBoxProps {
 export interface ChatBoxHandle {
   addMessage: (message: string, sender: 'user' | 'assistant') => void;
   getHistory: () => Message[];
+  setLoading: (loading: boolean) => void;
 }
 
 const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, selectedNode, onSendMessage }, ref) => {
@@ -25,7 +26,7 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
   // Automatikus görgetés az új üzeneteknél
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, []);
 
@@ -46,7 +47,8 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
   // Expose addMessage method through ref
   useImperativeHandle(ref, () => ({
     addMessage,
-    getHistory: () => messages
+    getHistory: () => messages,
+    setLoading: (loading: boolean) => setIsLoading(loading)
   }));
 
   // Üzenet küldése
@@ -109,7 +111,7 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Írj egy üzenetet..."
+          placeholder="Írj üzenetet az I.E.R.-nek..."
           rows={3}
         />
         <button 

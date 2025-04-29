@@ -159,9 +159,18 @@ const Timeline: React.FC<TimelineProps> = ({
               start: new Date(window.start.getTime()),
               end: new Date(window.end.getTime())
             };
-            setTimeWindow(newWindow);
-            if (onRangeChange) {
-              onRangeChange(newWindow.start, newWindow.end);
+            
+            // Csak akkor frissítsünk, ha lényegesen változott az időablak
+            if (!timeWindow || 
+                Math.abs(newWindow.start.getTime() - timeWindow.start.getTime()) > 1000 ||
+                Math.abs(newWindow.end.getTime() - timeWindow.end.getTime()) > 1000) {
+              
+              console.log('Timeline range changed:', newWindow.start, newWindow.end);
+              setTimeWindow(newWindow);
+              
+              if (onRangeChange) {
+                onRangeChange(newWindow.start, newWindow.end);
+              }
             }
           }, 100);
         });

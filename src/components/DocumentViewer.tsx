@@ -34,14 +34,15 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
             <iframe 
               src={getDocumentPath(document.url)} 
               width="100%" 
-              height="500px" 
+              height="600px" 
               title={document.title}
+              style={{ border: 'none' }}
             />
           ) : document.type === 'image' ? (
             <img 
               src={getDocumentPath(document.url)} 
               alt={document.title} 
-              style={{ maxWidth: '100%', maxHeight: '500px' }} 
+              style={{ maxWidth: '100%', maxHeight: '600px', display: 'block', margin: '0 auto' }} 
             />
           ) : (
             <div className="text-content">

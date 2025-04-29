@@ -9,14 +9,14 @@ import { format } from 'date-fns';
 import AppointmentSummary from './components/AppointmentSummary.tsx';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import EventForm from './components/EventForm';
-import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram } from 'react-icons/fa'; // Example icons
+import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram, FaQuestionCircle } from 'react-icons/fa'; // Added FaQuestionCircle
 
 // Környezeti változók beolvasása
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL; // Chat üzenetek kezelése
-// const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Local Docker Webhook URL
+const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Local Docker Webhook URL
 // const CHAT_WEBHOOK_URL = 'http://n8nalfa.hwnet.local:5678/webhook/webhook'; // Local Docker Webhook URL // Ezt kikommentelem
-const CHAT_WEBHOOK_URL = 'https://n8n-tc2m.onrender.com/webhook/webhook'; // PRODUCTION Webhook URL
+// const CHAT_WEBHOOK_URL = 'https://n8n-tc2m.onrender.com/webhook/webhook'; // PRODUCTION Webhook URL
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || ''; // Backend API base URL
 
 // --- Alapértelmezett események és csomópontok ---
@@ -239,7 +239,7 @@ const initialPatientNodes: GraphNode[] = [
   
   { id: 'lab_crp_2020_10_08', label: 'CRP: 57 mg/L', type: 'labValue', timestamp: new Date('2020-10-08') },
   { id: 'lab_we_2020_10_08', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') },
-  { id: 'lab_we_2020_10_08', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') }
+  { id: 'lab_we_2020_10_08_2', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') }
 ];
 
 // --- Alapértelmezett gráf kapcsolatok ---
@@ -678,7 +678,7 @@ const allPatientNodes: GraphNode[] = [
   
   { id: 'lab_crp_2020_10_08', label: 'CRP: 57 mg/L', type: 'labValue', timestamp: new Date('2020-10-08') },
   { id: 'lab_we_2020_10_08', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') },
-  { id: 'lab_we_2020_10_08', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') }
+  { id: 'lab_we_2020_10_08_2', label: 'Süllyedés: 63 mm/h', type: 'labValue', timestamp: new Date('2020-10-08') }
 ];
 
 // --- Alapértelmezett gráf kapcsolatok ---
@@ -907,6 +907,8 @@ const App: React.FC = () => {
 
   // Időintervallum változás kezelése debounce-olással
   const handleTimeRangeChange = (start: Date, end: Date) => {
+    console.log(`Timeline range changed: ${start.toISOString()} - ${end.toISOString()}`);
+    
     // Ellenőrizzük, hogy tényleg változott-e az időtartomány
     if (lastTimeRangeRef.current &&
         lastTimeRangeRef.current.start.getTime() === start.getTime() &&
@@ -920,9 +922,15 @@ const App: React.FC = () => {
 
     lastTimeRangeRef.current = { start, end };
 
+    // Késleltetéssel frissítjük a látható időtartományt, hogy ne legyen túl sok újrarajzolás
     timeoutRef.current = window.setTimeout(() => {
       setVisibleTimeRange({ start, end });
-      // Már nem kell itt törölni a selectedEvent-et, a visibleNodes/Edges újraszámolódik
+      
+      // Ha volt kiválasztott esemény, töröljük, mert most időtartomány alapján szűrünk
+      if (selectedEvent || selectedNode) {
+        setSelectedEvent(null);
+        setSelectedNode(null);
+      }
     }, 300);
   };
 
@@ -956,10 +964,12 @@ const App: React.FC = () => {
 
   // Memoizáljuk a látható node-okat
   const visibleNodes = useMemo(() => {
-    if (showAllNodes) return displayedGraphNodes; // Ha mindent mutatunk, kész
+    // Ha mindent mutatunk, kész
+    if (showAllNodes) return displayedGraphNodes; 
 
+    // Ha van kiválasztott node vagy esemény
     const focusedNodeId = selectedNode || (selectedEvent ? eventToNodeMap[selectedEvent] : null);
-
+    
     if (focusedNodeId) {
       // Ha van kiválasztott elem (esemény VAGY csomópont)
       const connectedNodes = new Set<string>([focusedNodeId]);
@@ -980,42 +990,57 @@ const App: React.FC = () => {
 
       // Csak a fókuszált és a közvetlen szomszédok mutatása
       return displayedGraphNodes.filter(node => connectedNodes.has(node.id));
-
     } else if (visibleTimeRange) {
       // Ha nincs kiválasztás, de van időtartomány, szűrés az alapján
-      return displayedGraphNodes.filter(node => {
-        if (node.type === 'disease') {
-           // Betegség node marad, ha kapcsolódik időtartományba eső elemhez
-           return displayedGraphEdges.some(edge => {
-             const connectedNodeId = edge.from === node.id ? edge.to : edge.from;
-             const connectedNode = displayedGraphNodes.find(n => n.id === connectedNodeId);
-             return connectedNode && connectedNode.timestamp &&
-                    connectedNode.timestamp >= visibleTimeRange.start &&
-                    connectedNode.timestamp <= visibleTimeRange.end;
-          });
-        } else {
-           // Többi node marad, ha az időtartományba esik
-          return node.timestamp && 
-                 node.timestamp >= visibleTimeRange.start && 
-                 node.timestamp <= visibleTimeRange.end;
+      // Először keressük meg az időtartományba eső csomópontokat
+      const nodesInTimeRange = new Set<string>();
+      
+      // Gyűjtsük össze az időtartományba eső csomópontok azonosítóit
+      displayedGraphNodes.forEach(node => {
+        if (node.timestamp && 
+            node.timestamp >= visibleTimeRange.start && 
+            node.timestamp <= visibleTimeRange.end) {
+          nodesInTimeRange.add(node.id);
         }
       });
+      
+      // Betegség node-okat és a hozzájuk kapcsolódó éleket is vegyük figyelembe
+      displayedGraphNodes.forEach(node => {
+        if (node.type === 'disease') {
+          // Ellenőrizzük, hogy kapcsolódik-e legalább egy, az időtartományba eső node-hoz
+          const hasConnectionInTimeRange = displayedGraphEdges.some(edge => {
+            if (edge.from === node.id) {
+              return nodesInTimeRange.has(edge.to);
+            } else if (edge.to === node.id) {
+              return nodesInTimeRange.has(edge.from);
+            }
+            return false;
+          });
+          
+          if (hasConnectionInTimeRange) {
+            nodesInTimeRange.add(node.id);
+          }
+        }
+      });
+      
+      // Szűrjük le a node-okat az összegyűjtött azonosítók alapján
+      return displayedGraphNodes.filter(node => nodesInTimeRange.has(node.id));
     }
     
     // Alapértelmezett: minden aktuálisan megjeleníthető node
     return displayedGraphNodes; 
   }, [selectedEvent, selectedNode, visibleTimeRange, showAllNodes, displayedGraphNodes, displayedGraphEdges, eventToNodeMap]);
 
-  // Memoizáljuk a látható éleket (ez a logika maradhat)
+  // Memoizáljuk a látható éleket
   const visibleEdges = useMemo(() => {
     if (showAllNodes) return displayedGraphEdges;
     
+    // Csak olyan éleket tartunk meg, amelyek mindkét vége látható node
     const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
-     // Filter displayed edges based on visible nodes
-     return displayedGraphEdges.filter(edge =>
+    return displayedGraphEdges.filter(edge =>
       visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to)
     );
-   }, [visibleNodes, showAllNodes, displayedGraphEdges]);
+  }, [visibleNodes, showAllNodes, displayedGraphEdges]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -1076,6 +1101,14 @@ const App: React.FC = () => {
     console.log('showCalendar changed:', showCalendar);
     console.log('selectedMetric:', selectedMetric);
   }, [showCalendar, selectedMetric]);
+
+  // Keep selectedMetric and mainPanelView in sync
+  useEffect(() => {
+    if (selectedMetric) {
+      console.log('Setting mainPanelView to graph because selectedMetric is set');
+      setMainPanelView('graph');
+    }
+  }, [selectedMetric]);
 
   const openAppointmentCalendar = async () => {
     console.log('openAppointmentCalendar called');
@@ -1437,29 +1470,93 @@ const App: React.FC = () => {
         }
 
         console.log("Esemény frissítve (teljes listában):", updatedEvent);
-        // // Ha a dátum megváltozott a cél dátumra/ról, állítsuk a láthatóságot // <-- Régi logika törölve
-        // if (originalEvent.start.getTime() !== updatedEvent.start.getTime()) {
-        //     if (updatedEvent.start.getTime() === targetDate) {
-        //         setShowLatestEvents(true); // Ha az új dátum a cél dátum
-        //     } else if (originalEvent.start.getTime() === targetDate && !allPatientEvents.some(e => e.id !== updatedEvent.id && e.start.getTime() === targetDate)) {
-        //         // Ha a régi dátum volt a cél dátum, ÉS más esemény nincs ezen a napon, akkor elrejtjük
-        //         // setShowLatestEvents(false); // Ezt még át kell gondolni, lehet, hogy nem kell elrejteni
-        //     }
-        // }
-        // // Force refresh // <-- Régi logika törölve
-        // setShowLatestEvents(prev => !prev);
-        // setTimeout(() => setShowLatestEvents(prev => !prev), 0);
     }
-     setEditingEvent(null); // Bezárjuk a formot
+    setEditingEvent(null); // Bezárjuk a formot
 
-     // ÚJ: Mentés után jelenítsük meg a rejtett eseményeket
-     setShowLatestEvents(true);
+    // ÚJ: Mentés után jelenítsük meg a rejtett eseményeket
+    setShowLatestEvents(true);
   };
 
-
   const handleMetricSelect = (metric: MetricKey) => {
+    console.log('Metric box clicked:', metric);
+    console.log('Setting main panel view to graph and selected metric to:', metric);
+    // Set the selected metric and change main panel view to 'graph'
     setSelectedMetric(metric);
-    setMainPanelView('metric'); // Show metric details in the main panel
+    setMainPanelView('graph');
+
+    // Find the details of the clicked metric
+    const clickedMetricData = healthMetrics.find(m => m.title === metric);
+    const patientFirstName = "Julianna"; // Assuming patient's first name
+
+    if (clickedMetricData && CHAT_WEBHOOK_URL) {
+      const prompt = `Kedves ${patientFirstName}, mindez mit jelent rám nézve? Kérem magyarázza el, hogy a(z) ${metric} metrika (${clickedMetricData.value} ${clickedMetricData.unit}, ${clickedMetricData.status} státusz) mit jelent az általános állapotom kontextusában.`;
+
+      chatboxRef.current?.addMessage(`Kérdés a kiválasztott ${metric} metrikáról...`, 'user');
+      
+      // Beállítjuk a chatbox loading állapotát
+      chatboxRef.current?.setLoading(true);
+
+      // Send request to n8n agent
+      fetch(CHAT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          message: prompt,
+          context: {
+            selectedMetric: clickedMetricData,
+            // Include other relevant context if needed, similar to handleSlotSelect
+            selectedEvent: selectedEvent ? displayedTimelineItems.find(e => e.id === selectedEvent) : null,
+            selectedNode: selectedNode ? displayedGraphNodes.find(n => n.id === selectedNode) : null,
+            visibleNodes: visibleNodes,
+            visibleEdges: visibleEdges
+          }
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Webhook hiba (${response.status}): ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Kikapcsoljuk a loading állapotot
+        chatboxRef.current?.setLoading(false);
+        
+        if (data.response) {
+          chatboxRef.current?.addMessage(data.response, 'assistant');
+        } else {
+          chatboxRef.current?.addMessage('Nem érkezett válasz a metrika értelmezésére.', 'assistant');
+        }
+      })
+      .catch(error => {
+        // Hiba esetén is kikapcsoljuk a loading állapotot
+        chatboxRef.current?.setLoading(false);
+        
+        console.error('Error sending metric explanation request:', error);
+        chatboxRef.current?.addMessage(
+          `Hiba történt a metrika értelmezésének kérése során: ${error instanceof Error ? error.message : String(error)}`,
+          'assistant'
+        );
+      });
+
+    } else if (!CHAT_WEBHOOK_URL) {
+       console.error('CHAT_WEBHOOK_URL is not defined. Cannot send metric explanation request.');
+       chatboxRef.current?.addMessage(
+         "Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).",
+         'assistant'
+       );
+    }
+  }
+
+  // Modified showGraphView function to clear metric selection
+  const showGraphView = () => {
+    console.log('Showing graph view');
+    setMainPanelView('graph');
+    setSelectedMetric(null); // This will also hide the timeline overlay
+    setShowAllNodes(true); // Show all visible nodes
   }
 
   // Function to handle switching the main panel view
@@ -1477,21 +1574,12 @@ const App: React.FC = () => {
     setSelectedNode(null);
   };
 
-  const showGraphView = () => {
-    setMainPanelView('graph');
-    setSelectedMetric(null);
-    // Optionally reset selection when returning to the main graph view
-    // setSelectedEvent(null);
-    // setSelectedNode(null);
-    setShowAllNodes(true); // Mutassuk az összes (látható) node-ot alapból
-  }
-
- // A komponens return része innen kezdődik
+  // A komponens return része innen kezdődik
 
   return (
     <div className="app-container">
       <div className="header-container">
-        <h1 style={{ textAlign: 'center', color: '#4e73df', marginBottom: '15px' }}>Intelligens Betegtámogató Rendszer</h1>
+        <h1 style={{ textAlign: 'center', color: '#4e73df', marginBottom: '15px' }}>Intelligens Egészségtámogató Rendszer</h1>
         <div className="patient-info">
           <div className="basic-info">
             <strong>Beteg:</strong> Kovács Julianna, 62 éves nő (2020-as adat), 2014-ben diagnosztizált Rheumatoid Arthritis-szal
@@ -1512,6 +1600,7 @@ const App: React.FC = () => {
             className="metric-box" 
             onClick={() => handleMetricSelect(metric.title as MetricKey)} 
             style={{ 
+              position: 'relative', // Added for absolute positioning of icon
               cursor: 'pointer',
               flex: '1 1 calc(16.66% - 10px)',
               minWidth: '150px',
@@ -1525,6 +1614,18 @@ const App: React.FC = () => {
               textAlign: 'center'
             }}
           >
+            {/* Question mark icon added */}
+            <span style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              fontSize: '14px',
+              color: '#aaa', // Subtle color
+              cursor: 'help' // Indicate help/info on hover
+            }}>
+              <FaQuestionCircle />
+            </span>
+            {/* Existing content */}
             <div className="metric-icon" style={{ fontSize: '24px', marginBottom: '5px' }}>{metric.icon}</div>
             <div className="metric-title" style={{ fontWeight: 'bold', marginBottom: '5px' }}>{metric.title}</div>
             <div className="metric-value" style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '5px' }}>
@@ -1550,26 +1651,40 @@ const App: React.FC = () => {
         ))}
       </div>
       <div className="timeline-container" style={{ marginBottom: 60, position: 'relative' }}>
-        {selectedMetric && mainPanelView !== 'metric' ? (
+        <Timeline
+          items={displayedTimelineItems}
+          onSelect={handleTimelineSelect}
+          onRangeChange={handleTimeRangeChange}
+          onAddEvent={handleAddEvent}
+          onEditEvent={handleEditEvent}
+        />
+        {selectedMetric && mainPanelView === 'graph' && (
           <div style={{ 
             position: 'absolute', 
             left: 15, 
             right: 15, 
-            top: 15, 
-            height: 180, 
+            top: 10, 
+            bottom: 10,
+            height: 'auto',
             background: 'white', 
             borderRadius: 12, 
             boxShadow: '0 4px 8px rgba(0,0,0,0.15)', 
             padding: '20px', 
             overflow: 'hidden', 
-            zIndex: 2 
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center'
           }}>
-            <button className="button" style={{ position: 'absolute', right: 10, top: 10 }} onClick={showGraphView}>
-              Vissza az eseményekhez
-            </button>
-            <h3 style={{ marginBottom: 10, textAlign: 'center', fontWeight: 600, fontSize: 20 }}>{selectedMetric} időbeli alakulása</h3>
+            <div className="view-header" style={{ marginBottom: 0, paddingBottom: 0, borderBottom: 'none' }}>
+              <h3 style={{ marginBottom: 15, fontWeight: 600, fontSize: 20 }}>{selectedMetric} időbeli alakulása</h3>
+              <button className="close-button-x" onClick={() => {
+                console.log('Closing timeline view');
+                setSelectedMetric(null);
+              }}>×</button>
+            </div>
             <div style={{ width: '100%', paddingRight: 20 }}>
-              <ResponsiveContainer width="100%" height={100}>
+              <ResponsiveContainer width="100%" height={120}>
                 <LineChart data={metricTimeSeries[selectedMetric as keyof typeof metricTimeSeries] || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
@@ -1587,14 +1702,6 @@ const App: React.FC = () => {
               </ResponsiveContainer>
             </div>
           </div>
-        ) : (
-          <Timeline
-            items={displayedTimelineItems} // A SZŰRT elemeket adjuk át
-            onSelect={handleTimelineSelect}
-            onRangeChange={handleTimeRangeChange}
-            onAddEvent={handleAddEvent}
-            onEditEvent={handleEditEvent}
-          />
         )}
       </div>
       <div className="main-content">
@@ -1626,16 +1733,65 @@ const App: React.FC = () => {
             </>
           )}
 
-          {mainPanelView === 'metric' && selectedMetric && (
+          {selectedMetric && mainPanelView === 'graph' && (
             <div style={{ margin: '0 0 20px 0', background: '#f8f9fa', borderRadius: 8, padding: 20, fontSize: 15, height: '100%', overflowY: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+              <div className="view-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div className="metric-icon" style={{ fontSize: '24px' }}>
                     {healthMetrics.find(m => m.title === selectedMetric)?.icon}
                   </div>
                   <h3 style={{ margin: 0 }}>{metricDescriptions[selectedMetric]}</h3>
                 </div>
-                <button onClick={showGraphView} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5 }}>×</button>
+                <button onClick={() => setSelectedMetric(null)} className="close-button-x">×</button>
+              </div>
+              <div style={{ marginTop: 20 }}>
+                <div style={{ 
+                  marginBottom: 20, 
+                  padding: 15, 
+                  borderRadius: 8,
+                  backgroundColor: currentStatusObj?.color + '10',
+                  borderLeft: `4px solid ${currentStatusObj?.color}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <div style={{ fontWeight: 'bold' }}>
+                    Aktuális érték: {healthMetrics.find(m => m.title === selectedMetric)?.value} {healthMetrics.find(m => m.title === selectedMetric)?.unit}
+                  </div>
+                  <div style={{ 
+                    color: currentStatusObj?.color,
+                    fontWeight: 'bold'
+                  }}>
+                    ({currentStatusObj?.label})
+                  </div>
+                </div>
+                <h4 style={{ marginBottom: 15 }}>Állapotjelzések magyarázata:</h4>
+                {statusDescriptions.map((status, index) => (
+                  <div key={index} style={{ 
+                    marginBottom: 10, 
+                    padding: 10, 
+                    borderRadius: 4,
+                    backgroundColor: status.color + '10',
+                    borderLeft: `4px solid ${status.color}`
+                  }}>
+                    <div style={{ fontWeight: 'bold', color: status.color }}>{status.label}</div>
+                    <div>{status.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {mainPanelView === 'metric' && selectedMetric && (
+            <div style={{ margin: '0 0 20px 0', background: '#f8f9fa', borderRadius: 8, padding: 20, fontSize: 15, height: '100%', overflowY: 'auto' }}>
+              <div className="view-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="metric-icon" style={{ fontSize: '24px' }}>
+                    {healthMetrics.find(m => m.title === selectedMetric)?.icon}
+                  </div>
+                  <h3 style={{ margin: 0 }}>{metricDescriptions[selectedMetric]}</h3>
+                </div>
+                <button onClick={showGraphView} className="close-button-x">×</button>
               </div>
               <div style={{ marginTop: 20 }}>
                 <div style={{ 
@@ -1677,7 +1833,10 @@ const App: React.FC = () => {
 
           {mainPanelView === 'connections' && (
             <div style={{ padding: 20 }}>
-              <h2>Válassza ki az IBT adatforrásait.</h2>
+              <div className="view-header">
+                <h2>Válassza ki az IBT adatforrásait.</h2>
+                <button onClick={showGraphView} className="close-button-x">×</button>
+              </div>
               <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: 20 }}>
                 <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaUserMd size={40} /><p>EESZT</p></div>
                 <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaHeartbeat size={40} /><p>Okosóra</p></div>
@@ -1688,7 +1847,10 @@ const App: React.FC = () => {
 
           {mainPanelView === 'financing' && (
             <div style={{ padding: 20 }}>
-              <h2 style={{ color: '#4e73df', marginBottom: 20 }}>Betegségfinanszírozás tervező</h2>
+              <div className="view-header">
+                <h2 style={{ color: '#4e73df' }}>Betegségfinanszírozás tervező</h2>
+                <button onClick={showGraphView} className="close-button-x">×</button>
+              </div>
               <p>A lenti táblázat a 2023-2025 időszakra vonatkozó várható egészségügyi kiadásokat és támogatásokat mutatja.</p>
               
               <div style={{ background: 'white', padding: 20, borderRadius: 8, boxShadow: '0 4px 8px rgba(0,0,0,0.1)', marginTop: 20 }}>
@@ -1805,7 +1967,19 @@ const App: React.FC = () => {
           {/* Naptár megjelenítése (Overlay struktúrával) - az elem a graph-container-en belül */}
           {showCalendar && !showSummary && (
             <div className="overlay-base calendar-container"> {/* Külső overlay div */} 
-              <div className="overlay-content" style={{ width: '95%', height: '95%', display: 'flex', flexDirection: 'column' }}>            {/* Belső tartalom konténer */} 
+              <div className="overlay-content" style={{ width: '95%', height: '95%', display: 'flex', flexDirection: 'column' }}>
+                <div className="view-header">
+                  <h3 style={{ margin: 0 }}>Időpontfoglalás</h3>
+                  <button 
+                    onClick={() => {
+                      setShowCalendar(false);
+                      setMainPanelView('graph');
+                    }}
+                    className="close-button-x"
+                  >
+                    ×
+                  </button>
+                </div>
                 <Calendar
                   onBack={() => {
                     setShowCalendar(false);
@@ -1833,8 +2007,8 @@ const App: React.FC = () => {
           )}
         </div>
         <div className="chatbox-container">
-          <div className="ibr-header">
-            <h2>I.B.R. asszisztens</h2>
+          <div className="ier-header">
+            <h2>I.E.R. asszisztens</h2>
             <div className="mode-switch">
               <button 
                 className={`mode-button ${communicationMode === 'text' ? 'active' : ''}`}

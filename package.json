@@ -5,7 +5,7 @@
   "description": "Betegség történetek vizualizációja",
   "scripts": {
     "start": "node dist/server/index.js",
-    "dev": "concurrently \"parcel src/index.html --open\" \"npm run server\"",
+    "dev": "parcel src/index.html --open",
     "server": "node --loader ts-node/esm src/server/index.ts",
     "build": "parcel build src/index.html --no-source-maps && tsc -p tsconfig.server.json",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -37,6 +37,7 @@
     "vis-timeline": "^7.7.3"
   },
   "devDependencies": {
+    "@parcel/resolver-default": "^2.14.4",
     "@types/node": "^22.14.0",
     "concurrently": "^8.2.2",
     "parcel": "^2.12.0",
