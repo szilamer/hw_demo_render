@@ -18,6 +18,7 @@ export interface TimelineItem {
   start: Date;
   documents?: Document[];
   description?: string;
+  className?: string;
 }
 
 interface TimelineProps {
@@ -69,7 +70,8 @@ const Timeline: React.FC<TimelineProps> = ({
         items.map((item: TimelineItem) => ({
           id: item.id,
           content: item.content,
-          start: item.start
+          start: item.start,
+          className: item.className
         }))
       );
 
@@ -190,7 +192,8 @@ const Timeline: React.FC<TimelineProps> = ({
         id: item.id,
         content: item.content,
         start: item.start,
-        title: item.description || item.content
+        title: item.description || item.content,
+        className: item.className
       }))
     );
 

@@ -42,7 +42,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
         borderRadius: '8px',
         width: '90%',
         maxWidth: '1200px',
-        maxHeight: '90vh',
+        maxHeight: '95vh',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column'
@@ -83,7 +83,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
         <div className="document-viewer-body" style={{
           padding: '20px',
           overflow: 'auto',
-          flex: 1
+          height: 'calc(95vh - 70px)'
         }}>
           {error ? (
             <div style={{
@@ -101,18 +101,18 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) =>
             </div>
           ) : document.type === 'pdf' ? (
             <iframe 
-              src={`src/documents/${document.url}`}
+              src={`http://localhost:3001/api/documents/download/${document.url}`}
               width="100%" 
-              height="calc(90vh - 120px)" 
+              height="100%"
               title={document.title}
               style={{ border: 'none' }}
               onError={handleLoadError}
             />
           ) : document.type === 'image' ? (
             <img 
-              src={`src/documents/${document.url}`}
+              src={`http://localhost:3001/api/documents/download/${document.url}`}
               alt={document.title} 
-              style={{ maxWidth: '100%', maxHeight: 'calc(90vh - 120px)', objectFit: 'contain' }} 
+              style={{ maxWidth: '100%', maxHeight: 'calc(95vh - 120px)', objectFit: 'contain' }}
               onError={handleLoadError}
             />
           ) : (

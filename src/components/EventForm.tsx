@@ -16,6 +16,8 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onClose, initialData })
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newDocumentTitles, setNewDocumentTitles] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false); // Add uploading state
+  const [uploadError, setUploadError] = useState<string | null>(null); // Add error state
 
   useEffect(() => {
     if (initialData) {
@@ -40,47 +42,63 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onClose, initialData })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsUploading(true); // Start uploading
+    setUploadError(null); // Clear previous errors
 
-    // --- Document Upload Logic (Placeholder/Simplified) ---
-    // In a real app, this would involve proper API calls
-    // This simplified version just prepares the structure
-    const uploadedNewDocs = await Promise.all(
-      newFiles.map(async (file, index) => {
-        // This URL/ID generation is just a placeholder
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-        const filename = `${uniqueSuffix}-${file.name}`;
-        const fileType = file.type.startsWith('image/') ? 'image' :
-                         file.type === 'application/pdf' ? 'pdf' : 'text';
+    const uploadedNewDocs: Document[] = [];
+    let uploadFailed = false;
 
-        // TODO: Actual upload API call needed here
-        // const formData = new FormData();
-        // formData.append('file', file);
-        // formData.append('title', newDocumentTitles[index] || file.name);
-        // const response = await fetch('/api/documents/upload', { method: 'POST', body: formData });
-        // const uploadedDocData = await response.json();
-        // return uploadedDocData;
+    try {
+      for (let i = 0; i < newFiles.length; i++) {
+        const file = newFiles[i];
+        const title = newDocumentTitles[i] || file.name;
 
-        // Placeholder return value:
-        return {
-          id: `doc-${Date.now()}-${index}`, // Placeholder ID
-          title: newDocumentTitles[index] || file.name,
-          url: filename, // Use the generated filename
-          type: fileType
-        };
-      })
-    );
-    // --- End Document Upload Logic ---
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', title);
 
+        // Actual upload API call
+        const response = await fetch('http://localhost:3001/api/documents/upload', { // Use correct backend URL
+          method: 'POST',
+          body: formData,
+        });
 
-    const eventData: TimelineItem = {
-      id: initialData ? initialData.id : `event-${Date.now()}`, // Use existing ID or generate new
-      content,
-      start: new Date(date),
-      // Combine existing documents (if any) with newly uploaded ones
-      documents: initialData ? [...existingDocuments, ...uploadedNewDocs] : uploadedNewDocs
-    };
+        if (!response.ok) {
+          // Try to get error message from backend
+          let errorMsg = `Hiba a(z) ${file.name} feltöltésekor: ${response.statusText}`;
+          try {
+            const errorData = await response.json();
+            errorMsg = errorData.error || errorMsg;
+          } catch (jsonError) {
+            // Ignore if response is not JSON
+          }
+          throw new Error(errorMsg);
+        }
 
-    onSubmit(eventData);
+        const uploadedDocData: Document = await response.json(); // Expect backend to return Document structure
+        uploadedNewDocs.push(uploadedDocData);
+      }
+    } catch (error: any) {
+      console.error("Upload failed:", error);
+      setUploadError(error.message || "Ismeretlen hiba a dokumentum feltöltése során.");
+      uploadFailed = true;
+    } finally {
+      setIsUploading(false); // Finish uploading
+    }
+
+    // Only proceed if upload was successful
+    if (!uploadFailed) {
+      const eventData: TimelineItem = {
+        id: initialData ? initialData.id : `event-${Date.now()}`,
+        content,
+        start: new Date(date),
+        // Combine existing documents with newly uploaded ones
+        documents: initialData ? [...existingDocuments, ...uploadedNewDocs] : uploadedNewDocs,
+      };
+
+      onSubmit(eventData); // Call onSubmit prop (which triggers handleAddEvent/handleUpdateEvent in App.tsx)
+      onClose(); // Close the form on successful submit
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,9 +225,21 @@ const EventForm: React.FC<EventFormProps> = ({ onSubmit, onClose, initialData })
           </div>
           {/* End Document Section */}
 
+          {/* Display upload error */}
+          {uploadError && (
+            <div className="form-error" style={{ color: 'red', marginBottom: '10px' }}>
+              {uploadError}
+            </div>
+          )}
+
           <div className="form-actions">
-            <button type="submit" className="submit-button">Mentés</button>
-            <button type="button" onClick={onClose} className="cancel-button">Mégse</button>
+            {/* Disable button while uploading */}
+            <button type="submit" className="submit-button" disabled={isUploading}>
+              {isUploading ? 'Feltöltés...' : (initialData ? 'Módosítások mentése' : 'Mentés')}
+            </button>
+            <button type="button" onClick={onClose} className="cancel-button" disabled={isUploading}>
+              Mégse
+            </button>
           </div>
         </form>
       </div>

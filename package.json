@@ -5,7 +5,7 @@
   "description": "Betegség történetek vizualizációja",
   "scripts": {
     "start": "node dist/server/index.js",
-    "dev": "NODE_ENV=development parcel serve src/index.html --port 3001",
+    "dev": "NODE_ENV=development parcel serve src/index.html --port 3000",
     "server": "node --loader ts-node/esm src/server/index.ts",
     "build": "parcel build src/index.html --no-source-maps && tsc -p tsconfig.server.json",
     "test": "echo \"Error: no test specified\" && exit 1"

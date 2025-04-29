@@ -460,6 +460,19 @@ type MetricKey = typeof metricKeys[number];
 // Define possible views for the main panel
 type MainPanelView = 'graph' | 'metric' | 'connections' | 'financing';
 
+// Define the special event data
+const specialEventData: TimelineItem = {
+  id: 'special_upload_event_2020_04_28',
+  content: 'Feltöltött Dokumentumok (Labor+Kórlap)',
+  start: new Date('2020-04-28'), // Specific date
+  documents: [
+    // Use existing document URLs instead of assumed ones
+    { id: 'doc_special_korlap', title: 'Kórlap 2020-04-23 (Referencia)', url: 'kj_korlap_2020_04_23.pdf', type: 'pdf' }, 
+    { id: 'doc_special_labor', title: 'Laborlelet 2020-04-23 (Referencia)', url: 'lab_20200423_cb.pdf', type: 'pdf' } 
+  ],
+  className: 'special-upload-event' // Class for special styling
+};
+
 const App: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -480,11 +493,28 @@ const App: React.FC = () => {
   const [editingEvent, setEditingEvent] = useState<TimelineItem | null>(null);
   // State to control the main panel view
   const [mainPanelView, setMainPanelView] = useState<MainPanelView>('graph'); 
+  const [showSpecialEvent, setShowSpecialEvent] = useState<boolean>(false); // State for special event visibility
 
   // Példa userId, reason, patientHistory (ezeket érdemes később dinamikusan kezelni)
   const userId = 'kovacs_istvan';
   const reason = 'Rendszeres kontroll vizsgálat';
   const patientHistory = {};
+
+  // Memoized list of events to display, including the special one if flag is set
+  const displayedEvents = useMemo(() => {
+    const allEvents = [...events];
+    if (showSpecialEvent) {
+      // Add or replace the special event
+      const existingIndex = allEvents.findIndex(e => e.id === specialEventData.id);
+      if (existingIndex > -1) {
+        allEvents[existingIndex] = specialEventData; // Replace if ID exists (though unlikely)
+      } else {
+        allEvents.push(specialEventData);
+      }
+    }
+    // Sort events by date before passing to Timeline
+    return allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
+  }, [events, showSpecialEvent]);
 
   // Idővonalon történő kiválasztás kezelése
   const handleTimelineSelect = (itemId: string | null) => {
@@ -1022,16 +1052,22 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
     setEditingEvent(item);
   };
 
-  // Function to handle adding a new event (passed to EventForm via Timeline -> App -> Timeline)
-  const handleAddEvent = async (event: TimelineItem) => {
-    // --- Placeholder Document Upload --- 
-    // In a real app, upload new documents from event.documents here
-    // and update event.documents with backend URLs/IDs before saving.
-    // Currently, EventForm returns placeholder URLs.
-    console.log("Adding event (upload placeholder):", event);
-    // --- End Placeholder --- 
+  // Function to handle adding a new event (called by EventForm onSubmit)
+  // This function now assumes it's called *after* a successful upload in EventForm
+  const handleAddEvent = async (newUserEvent: TimelineItem) => {
+    console.log("Handling successful upload event:", newUserEvent);
+    
+    // Add the event created by the user
+    setEvents(prevEvents => {
+      // Avoid adding duplicates if the ID already exists (though should be unique)
+      if (prevEvents.some(e => e.id === newUserEvent.id)) {
+        return prevEvents;
+      }
+      return [...prevEvents, newUserEvent];
+    });
 
-    setEvents(prevEvents => [...prevEvents, event]);
+    // Show the special hardcoded event
+    setShowSpecialEvent(true);
 
     // Optionally update graph nodes/edges if needed
     // ...
@@ -1049,6 +1085,11 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
       prevEvents.map(event => (event.id === updatedEvent.id ? updatedEvent : event))
     );
     setEditingEvent(null); // Close the edit form
+    
+    // Decide if editing should also trigger the special event
+    // For now, let's assume only adding new triggers it.
+    // If editing *should* trigger it, uncomment the next line:
+    // setShowSpecialEvent(true);
   };
 
   const handleMetricSelect = async (metric: MetricKey) => {
@@ -1300,10 +1341,11 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
           </div>
         ) : (
           <Timeline
-            items={events}
+            items={displayedEvents} // Pass the potentially modified list
             onSelect={handleTimelineSelect}
             onRangeChange={handleTimeRangeChange}
-            onAddEvent={handleAddEvent}
+            // Pass handleAddEvent to be triggered by EventForm via Timeline
+            onAddEvent={handleAddEvent} 
             onEditEvent={handleEditEvent}
           />
         )}

@@ -197,4 +197,11 @@ body {
   width: 100%;
   padding-right: 20px;
   margin-top: 10px;
+}
+
+/* Style for the special timeline event triggered by upload */
+.vis-item.special-upload-event {
+  background-color: #9b59b6 !important; /* Lilac color */
+  border-color: #8e44ad !important; /* Darker lilac border */
+  color: white !important; /* Ensure text is readable */
 } 
