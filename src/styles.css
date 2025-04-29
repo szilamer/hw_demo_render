@@ -153,17 +153,18 @@ h1, h2, h3, h4 {
   padding: 15px;
   background-color: white;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  min-height: 0;
+  height: 600px; /* Fix magasság */
+  min-height: 600px; /* Minimum magasság */
+  max-height: 600px; /* Maximum magasság */
+  overflow: hidden; /* A belső elemek fognak görgethetők lenni */
   box-sizing: border-box;
-  max-height: 700px;
-  overflow-y: auto;
 }
 
 .graph-inner,
 .chatbox-inner {
   flex: 1;
-  min-height: 0; /* Fontos a flex konténer túlcsordulásának megakadályozásához */
   position: relative;
+  overflow: hidden; /* Rejtse el a túlcsordulást */
 }
 
 /* Info tartalom stílusok */
@@ -320,6 +321,7 @@ h1, h2, h3, h4 {
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
+  max-height: calc(100% - 120px); /* Chat input magasságát levonva */
 }
 
 .message {
@@ -362,6 +364,7 @@ h1, h2, h3, h4 {
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  height: 120px; /* Fix magasság a chat input résznek */
 }
 
 .chat-input textarea {
@@ -392,23 +395,72 @@ h1, h2, h3, h4 {
 }
 
 /* Loading animáció */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 24px;
+  padding: 0 10px;
+}
+
 .loading span {
-  animation: loading 1s infinite;
+  animation: loadingDots 1s infinite;
   display: inline-block;
-  margin-right: 2px;
+  width: 8px;
+  height: 8px;
+  margin: 0 3px;
+  background-color: #4e73df;
+  border-radius: 50%;
+  opacity: 0.3;
 }
 
-.loading span:nth-child(2) {
-  animation-delay: 0.2s;
+.loading span:nth-child(1) { animation-delay: 0s; }
+.loading span:nth-child(2) { animation-delay: 0.2s; }
+.loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loadingDots {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
-.loading span:nth-child(3) {
-  animation-delay: 0.4s;
+/* Új loading animáció a chat üzenetekhez */
+.message.assistant-message .loading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 5px 0;
 }
 
-@keyframes loading {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+.message.assistant-message .loading span {
+  animation: typingDots 1.4s infinite;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: 0 2px;
+  background-color: #4e73df;
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+.message.assistant-message .loading span:nth-child(1) { animation-delay: 0s; }
+.message.assistant-message .loading span:nth-child(2) { animation-delay: 0.2s; }
+.message.assistant-message .loading span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDots {
+  0%, 100% { 
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% { 
+    opacity: 1;
+    transform: translateY(-5px);
+  }
 }
 
 .tooltip-content {
@@ -552,9 +604,9 @@ h1, h2, h3, h4 {
   
   .graph-container,
   .chatbox-container {
-    width: 100%;
-    min-height: 400px;
-    flex: 0 0 auto; /* Ne nyúljon */
+    height: 500px;
+    min-height: 500px;
+    max-height: 500px;
   }
 
   .timeline-container {
@@ -588,7 +640,9 @@ h1, h2, h3, h4 {
 
   .graph-container,
   .chatbox-container {
-    min-height: 300px;
+    height: 400px;
+    min-height: 400px;
+    max-height: 400px;
   }
 
   .button {

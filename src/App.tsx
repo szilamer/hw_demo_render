@@ -10,6 +10,7 @@ import AppointmentSummary from './components/AppointmentSummary.tsx';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import EventForm from './components/EventForm';
 import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram, FaQuestionCircle } from 'react-icons/fa'; // Example icons
+import AnamnesisForm from './components/AnamnesisForm';
 
 // Környezeti változók beolvasása
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
@@ -25,7 +26,7 @@ const patientEvents: TimelineItem[] = [
     id: 'ev1', 
     content: 'Első Vizsgálat és Diagnózis', 
     start: new Date('2014-09-24'),
-    documents: [{ id: 'doc_ev1_1', title: 'Kórlap 2014-09-24', url: 'kj_korlap_2014_09_24.pdf', type: 'pdf' }]
+    documents: [{ id: 'doc_ev1_1', title: 'Kórlap 2014-09-24', url: 'test.pdf', type: 'pdf' }]
   },
   { 
     id: 'ev2', 
@@ -681,60 +682,130 @@ const App: React.FC = () => {
       
       // Bővített üzenet a felhasználónak
       chatboxRef.current?.addMessage(
-        `Időpont kiválasztva: ${format(new Date(slot.start), 'yyyy-MM-dd HH:mm')}\nKérem várjon, amíg elkészül a vizsgálat előkészítő dokumentum, amit a kezelőorvosa fog megkapni.`,
+        `Időpont kiválasztva: ${format(new Date(slot.start), 'yyyy-MM-dd HH:mm')}\nElőkészítem az anamnézis összefoglalót...`,
         'user'
       );
 
-      if (!CHAT_WEBHOOK_URL) {
-          console.error('CHAT_WEBHOOK_URL is not defined. Cannot send slot selection.');
-          chatboxRef.current?.addMessage(
-            "Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).",
-            'assistant'
-          );
-          return;
-      }
+      // Beégetett anamnézis összefoglaló
+      const hardcodedSummary = `
+BETEG ÁLLAPOTÁNAK ÖSSZEFOGLALÁSA
+================================
 
-      const response = await fetch(CHAT_WEBHOOK_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          message: "date_selected",
-          slot: {
-            start: format(new Date(slot.start), 'yyyy-MM-dd HH:mm'),
-            end: format(new Date(slot.end), 'yyyy-MM-dd HH:mm'),
-            title: slot.title
-          },
-          context: { // A kontextus küldése itt is fontos lehet
-            selectedMetric: selectedMetric ? healthMetrics.find(m => m.title === selectedMetric) : null,
-            selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
-            selectedNode: selectedNode ? patientNodes.find(n => n.id === selectedNode) : null,
-            visibleNodes: visibleNodes, // Látható node-ok küldése
-            visibleEdges: visibleEdges  // Látható élek küldése
+Kovács Julianna (62 éves nő)
+Diagnózis: Rheumatoid Arthritis (2014-től)
+
+AKTUÁLIS ÁLLAPOT
+---------------
+- DAS28 érték: 6.0 (Magas betegségaktivitás)
+  A betegség aktivitása jelentősen emelkedett, ami az ízületi gyulladások fokozódására és a terápia hatékonyságának csökkenésére utal.
+
+- CRP: 51 mg/L (Jelentősen emelkedett)
+  A gyulladásos marker szintje több mint tízszerese a normál értéknek (< 5 mg/L), ami aktív gyulladásos folyamatot jelez.
+
+- Süllyedés: 69 mm/h (Jelentősen emelkedett)
+  A magas süllyedés érték korrelál a CRP emelkedéssel, megerősítve a szisztémás gyulladás jelenlétét.
+
+- Vérnyomás: 130/85 mmHg (Normál tartomány)
+  A kardiovaszkuláris paraméterek stabilak, a vérnyomás megfelelően kontrollált.
+
+- Napi lépésszám: 3000 lépés (Csökkent aktivitás)
+  A fizikai aktivitás jelentősen elmarad az ajánlott napi 6000-8000 lépéstől, ami összefügghet az ízületi fájdalmakkal.
+
+BETEGSÉGTÖRTÉNET ÖSSZEFOGLALÁSA
+-----------------------------
+- 2014: Első diagnózis és kezelés kezdete
+  Kezdeti DAS28: 5.8, magas betegségaktivitással induló kórkép. NSAID és Methotrexát terápia indítása.
+
+- 2015: Kezdeti terápiás válasz
+  Átmeneti javulás (DAS28: 3.2), majd remisszió közeli állapot (DAS28: 2.6) elérése.
+
+- 2016: Első biológiai terápia (Adalimumab)
+  Fellángolás miatt (DAS28: 5.4) biológiai terápia indítása, ami kezdetben hatékonynak bizonyult.
+
+- 2017: Remisszió elérése
+  A biológiai terápia mellett jelentős javulás, remisszió (DAS28: 2.8) dokumentálása.
+
+- 2018-2019: Terápiás hatékonyság csökkenése
+  Ismételt fellángolások (DAS28: 6.2), második biológiai terápia bevezetése szükségessé vált.
+
+- 2020: Progresszió
+  A betegség aktivitása ismét fokozódott (DAS28: 6.0), terápiás stratégia újragondolása szükséges.
+
+JELENLEGI KEZELÉS
+---------------
+- Második vonalbeli biológiai terápia
+  2019 áprilisa óta, jelenleg csökkent hatékonysággal
+
+- Methotrexát + Folsav
+  Folyamatos alapkezelésként a diagnózis óta
+
+- Rendszeres kontrollvizsgálatok
+  3 havonta esedékes laborkontroll és fizikális vizsgálat
+
+KOCKÁZATI TÉNYEZŐK
+----------------
+- Tartósan magas betegségaktivitás
+  A gyulladásos markerek folyamatos emelkedése strukturális károsodások kockázatát növeli
+
+- Csökkent terápiás válasz
+  A második biológiai terápia mellett sem megfelelő a betegségkontroll
+
+- Mozgásszervi funkciók beszűkülése
+  A csökkent fizikai aktivitás további funkcióvesztés kockázatát hordozza
+
+JAVASLATOK
+---------
+1. Részletes fizikális vizsgálat
+   Különös tekintettel az érintett ízületekre és funkcionális státuszra
+
+2. Aktuális gyulladásos paraméterek ellenőrzése
+   CRP, We, teljes vérkép, májfunkció, vesefunkció kontroll
+
+3. Terápiás hatékonyság újraértékelése
+   A biológiai terápia esetleges váltásának mérlegelése
+
+4. Életmódbeli tanácsadás
+   Gyógytorna, megfelelő fizikai aktivitás tervezése a terhelhetőség függvényében
+
+A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás stratégia felülvizsgálata és módosítása válhat szükségessé. A magas gyulladásos aktivitás és a funkcionális státusz romlása miatt sürgős beavatkozás indokolt.`;
+
+      setAppointmentSummary(hardcodedSummary);
+      setShowCalendar(false);
+      setShowSummary(true);
+
+      // Ha van webhook URL, akkor még mindig megpróbáljuk elküldeni az adatokat
+      if (CHAT_WEBHOOK_URL) {
+        try {
+          const response = await fetch(CHAT_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              message: "date_selected",
+              slot: {
+                start: format(new Date(slot.start), 'yyyy-MM-dd HH:mm'),
+                end: format(new Date(slot.end), 'yyyy-MM-dd HH:mm'),
+                title: slot.title
+              },
+              context: {
+                selectedMetric: selectedMetric ? healthMetrics.find(m => m.title === selectedMetric) : null,
+                selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
+                selectedNode: selectedNode ? patientNodes.find(n => n.id === selectedNode) : null,
+                visibleNodes: visibleNodes,
+                visibleEdges: visibleEdges
+              }
+            })
+          });
+
+          const data = await response.json();
+          if (data.response) {
+            chatboxRef.current?.addMessage(data.response, 'assistant');
           }
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.response) {
-        chatboxRef.current?.addMessage(data.response, 'assistant');
-        
-        // Ha a webhook válaszában van összegzés, akkor jelenítjük meg
-        if (data.summary) {
-          setAppointmentSummary(data.summary);
-          setShowCalendar(false);
-          setShowSummary(true);
-        } else {
-          // Ha nincs summary, lehet, hogy csak vissza kellene zárni a naptárat?
-          // Vagy hagyni nyitva? A küldött kódban itt nem volt explicit kezelés.
-          // Most egyelőre nem teszünk semmit, ha nincs summary.
+        } catch (error) {
+          console.log('N8n webhook hívás sikertelen, de az anamnézis űrlap megjelenik:', error);
         }
-      } else {
-        // Ha nincs 'response' a webhook válaszban
-        chatboxRef.current?.addMessage('A kiválasztott időpontra vonatkozóan nem érkezett visszajelzés.', 'assistant');
       }
 
     } catch (error) {
@@ -980,10 +1051,82 @@ const App: React.FC = () => {
     setEditingEvent(null); // Close the edit form
   };
 
-  const handleMetricSelect = (metric: MetricKey) => {
+  const handleMetricSelect = async (metric: MetricKey) => {
     setSelectedMetric(metric);
-    setMainPanelView('metric'); // Show metric details in the main panel
-  }
+    setMainPanelView('metric');
+
+    // Get the metric data
+    const metricData = healthMetrics.find(m => m.title === metric);
+    
+    if (!metricData) {
+      console.error('Selected metric data not found:', metric);
+      return;
+    }
+
+    try {
+      if (!CHAT_WEBHOOK_URL) {
+        console.error('CHAT_WEBHOOK_URL is not defined. Cannot send metric selection.');
+        chatboxRef.current?.addMessage(
+          "Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).",
+          'assistant'
+        );
+        return;
+      }
+
+      // Add a message to indicate that we're analyzing the metric
+      chatboxRef.current?.addMessage(
+        `A "${metric}" mérőszám elemzése folyamatban...`,
+        'user'
+      );
+
+      const response = await fetch(CHAT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: "metric_selected",
+          context: {
+            selectedMetric: {
+              name: metricData.title,
+              value: metricData.value,
+              unit: metricData.unit,
+              status: metricData.status,
+              description: metricDescriptions[metric] || '',
+              patient: {
+                firstName: "Julianna" // Using the patient's first name as requested
+              }
+            },
+            selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
+            selectedNode: selectedNode ? patientNodes.find(n => n.id === selectedNode) : null,
+            visibleNodes: visibleNodes,
+            visibleEdges: visibleEdges
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Display the response in the chatbox
+      if (data.response || data.message || data.output) {
+        chatboxRef.current?.addMessage(
+          data.response || data.message || data.output,
+          'assistant'
+        );
+      }
+
+    } catch (error) {
+      console.error('Error sending metric selection:', error);
+      chatboxRef.current?.addMessage(
+        'Hiba történt a mérőszám elemzése során. Kérem próbálja újra később.',
+        'assistant'
+      );
+    }
+  };
 
   // Function to handle switching the main panel view
   const showDataConnections = () => {
@@ -1003,22 +1146,72 @@ const App: React.FC = () => {
     setSelectedNode(null);
   }
 
+  const handleDownloadAnamnesis = () => {
+    // Anamnézis letöltése
+    const element = document.createElement('a');
+    const file = new Blob([appointmentSummary], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = `anamnezis_${format(new Date(), 'yyyy-MM-dd')}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
   return (
     <div className="app-container">
-      <div className="header-container">
-        <h1 style={{ textAlign: 'center', color: '#4e73df', marginBottom: '15px' }}>Intelligens Betegtámogató Rendszer</h1>
-        <div className="patient-info">
-          <div className="basic-info">
-            <strong>Beteg:</strong> Kovács Julianna, 62 éves nő (2020-as adat), 2014-ben diagnosztizált Rheumatoid Arthritis-szal
+      <div className="header-container" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '15px 20px',
+        borderBottom: '1px solid #e3e6f0'
+      }}>
+        <h1 style={{ 
+          color: '#4e73df', 
+          margin: 0,
+          fontSize: '1.8rem',
+          fontWeight: 600
+        }}>
+          Intelligens Egészségtámogató Rendszer
+        </h1>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            backgroundColor: '#e3e6f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px'
+          }}>
+            👤
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <span style={{
+              fontSize: '16px',
+              fontWeight: 500,
+              color: '#2c3e50'
+            }}>
+              Júlia
+            </span>
           </div>
         </div>
       </div>
+
       <div className="metrics-container" style={{ 
         display: 'flex', 
         flexWrap: 'wrap', 
         gap: '10px', 
         justifyContent: 'space-between',
-        padding: '0 15px',
+        padding: '15px',
         margin: '0 0 20px 0'
       }}>
         {healthMetrics.map((metric, index) => (
@@ -1151,7 +1344,26 @@ const App: React.FC = () => {
                   </div>
                   <h3 style={{ margin: 0 }}>{metricDescriptions[selectedMetric]}</h3>
                 </div>
-                <button onClick={showGraphView} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 5 }}>×</button>
+                <button 
+                  onClick={showGraphView} 
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ✕
+                </button>
               </div>
               <div style={{ marginTop: 20 }}>
                 <div style={{ 
@@ -1193,7 +1405,29 @@ const App: React.FC = () => {
 
           {mainPanelView === 'connections' && (
             <div style={{ padding: 20 }}>
-              <h2>Válassza ki az IBT adatforrásait.</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2>Válassza ki az IER adatforrásait</h2>
+                <button 
+                  onClick={showGraphView}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ✕
+                </button>
+              </div>
               <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: 20 }}>
                 <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaUserMd size={40} /><p>EESZT</p></div>
                 <div style={{ textAlign: 'center', cursor: 'pointer' }}><FaHeartbeat size={40} /><p>Okosóra</p></div>
@@ -1204,7 +1438,29 @@ const App: React.FC = () => {
 
           {mainPanelView === 'financing' && (
             <div style={{ padding: 20 }}>
-              <h2 style={{ color: '#4e73df', marginBottom: 20 }}>Betegségfinanszírozás tervező</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <h2 style={{ color: '#4e73df', margin: 0 }}>Betegségfinanszírozás tervező</h2>
+                <button 
+                  onClick={showGraphView}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ✕
+                </button>
+              </div>
               <p>A lenti táblázat a 2023-2025 időszakra vonatkozó várható egészségügyi kiadásokat és támogatásokat mutatja.</p>
               
               <div style={{ background: 'white', padding: 20, borderRadius: 8, boxShadow: '0 4px 8px rgba(0,0,0,0.1)', marginTop: 20 }}>
@@ -1318,10 +1574,61 @@ const App: React.FC = () => {
             </div>
           )}
           
-          {/* Naptár megjelenítése (Overlay struktúrával) - az elem a graph-container-en belül */}
+          {/* Naptár megjelenítése (Overlay struktúrával) */}
           {showCalendar && !showSummary && (
-            <div className="overlay-base calendar-container"> {/* Külső overlay div */} 
-              <div className="overlay-content" style={{ width: '95%', height: '95%', display: 'flex', flexDirection: 'column' }}>            {/* Belső tartalom konténer */} 
+            <div className="overlay-base calendar-container" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              zIndex: 1000,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '20px'
+            }}>
+              <div className="overlay-content" style={{
+                width: '100%',
+                height: '100%',
+                maxWidth: '1200px',
+                maxHeight: '800px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                overflow: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative'
+              }}>
+                <button 
+                  onClick={() => {
+                    setShowCalendar(false);
+                    setMainPanelView('graph');
+                  }}
+                  style={{ 
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s',
+                    zIndex: 1001
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ✕
+                </button>
                 <Calendar
                   onBack={() => {
                     setShowCalendar(false);
@@ -1334,15 +1641,65 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* Időpontfoglalás összegzése (Overlay struktúrával) - az elem a graph-container-en belül */}
+          {/* Időpontfoglalás összegzése (Overlay struktúrával) */}
           {showSummary && currentSlot && (
-            <div className="overlay-base appointment-summary"> {/* Külső overlay div */} 
-              <div className="overlay-content">             {/* Belső tartalom konténer */} 
-                <AppointmentSummary
-                  slot={currentSlot}
+            <div className="overlay-base appointment-summary" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              zIndex: 1000,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '20px'
+            }}>
+              <div className="overlay-content" style={{
+                width: '100%',
+                height: '100%',
+                maxWidth: '1200px',
+                maxHeight: '800px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                overflow: 'auto',
+                padding: '20px',
+                position: 'relative'
+              }}>
+                <button 
+                  onClick={() => {
+                    setShowSummary(false);
+                    setMainPanelView('graph');
+                  }}
+                  style={{ 
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s',
+                    zIndex: 1001
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  ✕
+                </button>
+                <AnamnesisForm
                   summary={appointmentSummary}
-                  onConfirm={handleConfirmAppointment}
-                  onCancel={() => setShowSummary(false)}
+                  onSubmit={handleConfirmAppointment}
+                  onDownload={handleDownloadAnamnesis}
+                  isSubmitted={false}
                 />
               </div>
             </div>
@@ -1350,7 +1707,7 @@ const App: React.FC = () => {
         </div>
         <div className="chatbox-container">
           <div className="ibr-header">
-            <h2>I.B.R. asszisztens</h2>
+            <h2>I.E.R. asszisztens</h2>
             <div className="mode-switch">
               <button 
                 className={`mode-button ${communicationMode === 'text' ? 'active' : ''}`}
@@ -1401,7 +1758,7 @@ const App: React.FC = () => {
           📅 Időpontfoglalás
         </button>
         <button className="button" onClick={showDataConnections}>
-          <FaLink style={{ marginRight: 5 }}/> Adatkapcsolatok kezelése 
+          <FaLink style={{ marginRight: 5 }}/> I.E.R. adatkapcsolatok kezelése 
         </button>
         <button className="button" disabled>
           Csatolt szolgáltatások

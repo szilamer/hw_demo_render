@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Document {
   id: string;
@@ -14,39 +14,114 @@ interface DocumentViewerProps {
 }
 
 const DocumentViewer: React.FC<DocumentViewerProps> = ({ document, onClose }) => {
-  // PDF elérési útvonal meghatározása - labor leletek és kórlapok kezelése
-  const getDocumentPath = (url: string) => {
-    // Ellenőrizzük, hogy labor lelet-e a dokumentum
-    if (url.startsWith('lab_')) {
-      return `/documents/${url}`;
-    }
-    // Egyébként a standard API végpont
-    return `/api/documents/download/${url}`;
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLoadError = () => {
+    console.error('Document loading error:', {
+      url: document.url,
+      type: document.type
+    });
+    setError('A dokumentum betöltése sikertelen. Kérem ellenőrizze, hogy a fájl létezik és megfelelő formátumú.');
   };
 
   return (
-    <div className="document-viewer-overlay">
-      <div className="document-viewer-content">
-        <div className="document-viewer-header">
-          <h3>{document.title}</h3>
-          <button onClick={onClose} className="close-button">×</button>
+    <div className="document-viewer-overlay" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div className="document-viewer-content" style={{
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        width: '90%',
+        maxWidth: '1200px',
+        maxHeight: '90vh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div className="document-viewer-header" style={{
+          padding: '15px 20px',
+          borderBottom: '1px solid #eee',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>
+            {document.title}
+          </h3>
+          <button 
+            onClick={onClose} 
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '24px',
+              cursor: 'pointer',
+              padding: '5px',
+              color: '#666',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            ×
+          </button>
         </div>
-        <div className="document-viewer-body">
-          {document.type === 'pdf' ? (
+        <div className="document-viewer-body" style={{
+          padding: '20px',
+          overflow: 'auto',
+          flex: 1
+        }}>
+          {error ? (
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#fff3f3',
+              color: '#d32f2f',
+              borderRadius: '4px',
+              textAlign: 'center'
+            }}>
+              {error}
+              <br />
+              <small style={{ display: 'block', marginTop: '10px', color: '#666' }}>
+                Dokumentum adatok: {document.title} ({document.type})
+              </small>
+            </div>
+          ) : document.type === 'pdf' ? (
             <iframe 
-              src={getDocumentPath(document.url)} 
+              src={`src/documents/${document.url}`}
               width="100%" 
-              height="500px" 
+              height="calc(90vh - 120px)" 
               title={document.title}
+              style={{ border: 'none' }}
+              onError={handleLoadError}
             />
           ) : document.type === 'image' ? (
             <img 
-              src={getDocumentPath(document.url)} 
+              src={`src/documents/${document.url}`}
               alt={document.title} 
-              style={{ maxWidth: '100%', maxHeight: '500px' }} 
+              style={{ maxWidth: '100%', maxHeight: 'calc(90vh - 120px)', objectFit: 'contain' }} 
+              onError={handleLoadError}
             />
           ) : (
-            <div className="text-content">
+            <div className="text-content" style={{
+              padding: '20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '4px',
+              whiteSpace: 'pre-wrap'
+            }}>
               {document.content || 'A dokumentum tartalma nem megjeleníthető'}
             </div>
           )}

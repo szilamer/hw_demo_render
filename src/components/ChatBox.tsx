@@ -91,14 +91,18 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
               {message.message}
             </div>
             <div className="message-timestamp">
-              {new Date(index * 1000).toLocaleTimeString()}
+              {new Date().toLocaleTimeString()}
             </div>
           </div>
         ))}
         {isLoading && (
           <div className="message assistant-message">
-            <div className="message-content loading">
-              <span>.</span><span>.</span><span>.</span>
+            <div className="message-content">
+              <div className="loading">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
           </div>
         )}
@@ -111,13 +115,14 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
           onKeyPress={handleKeyPress}
           placeholder="Írj egy üzenetet..."
           rows={3}
+          disabled={isLoading}
         />
         <button 
           className="button send-button" 
           onClick={handleSend}
           disabled={isLoading || inputValue.trim() === ''}
         >
-          📤 Küldés
+          {isLoading ? '...' : '📤 Küldés'}
         </button>
       </div>
     </div>
