@@ -1578,11 +1578,34 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <div className="header-container">
-        <h1 style={{ textAlign: 'center', color: '#4e73df', marginBottom: '15px' }}>Intelligens Egészségtámogató Rendszer</h1>
-        <div className="patient-info">
-          <div className="basic-info">
-            <strong>Beteg:</strong> Kovács Julianna, 62 éves nő (2020-as adat), 2014-ben diagnosztizált Rheumatoid Arthritis-szal
+      <div className="header-container" style={{ 
+        display: 'flex', 
+        flexDirection: 'row',
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        padding: '10px 20px'
+      }}>
+        <h1 style={{ 
+          color: '#4e73df', 
+          margin: 0,
+          fontSize: '24px'
+        }}>Intelligens Egészségtámogató Rendszer</h1>
+        <div className="profile-container" style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '10px'
+        }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold' }}>KJulia</div>
+          <div className="profile-image" style={{ 
+            width: '35px', 
+            height: '35px', 
+            borderRadius: '50%', 
+            backgroundColor: '#e0e0e0', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center'
+          }}>
+            <span style={{ fontSize: '18px', color: '#757575' }}>👤</span>
           </div>
         </div>
       </div>

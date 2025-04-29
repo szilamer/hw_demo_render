@@ -28,23 +28,28 @@ body {
 .header-container {
   width: calc(100% - 30px);
   margin: 0 15px;
-  padding: 15px;
+  padding: 10px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 h1, h2, h3, h4 {
   color: #2c3e50;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
 }
 
 .patient-info {
   color: #34495e;
   font-size: 16px;
   margin: 0;
+  width: 100%;
 }
 
 /* Timeline stílusok */
@@ -78,8 +83,7 @@ h1, h2, h3, h4 {
 }
 
 /* Graph és Chatbox közös stílusok */
-.graph-container,
-.chatbox-container {
+.graph-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -120,9 +124,17 @@ h1, h2, h3, h4 {
 }
 
 .chatbox-container {
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important; /* A chatbox-container-ben nincs szükség görgetésre */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 15px;
+  background-color: white;
+  min-height: 400px; /* Fix minimum magasság */
+  max-height: 600px !important; /* Maximum magasság korlátozása */
+  box-sizing: border-box;
+  position: relative; /* Relatív pozicionálás a belső elemekhez */
 }
 
 .graph-inner,
