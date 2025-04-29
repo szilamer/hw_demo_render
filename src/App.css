@@ -133,4 +133,68 @@ body {
   .metric-value {
     font-size: 20px;
   }
+}
+
+/* Timeline stílusok */
+.timeline-container {
+  width: calc(100% - 30px);
+  height: 250px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  padding: 15px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+  margin: 0 15px;
+  position: relative;
+  margin-bottom: 60px;
+}
+
+.timeline-inner {
+  width: 100%;
+  height: 200px;
+}
+
+.timeline-chart {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  top: 15px;
+  height: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  padding: 20px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.timeline-chart h3 {
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.timeline-chart .button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #f0f0f0;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.timeline-chart .button:hover {
+  background: #e0e0e0;
+}
+
+.timeline-chart .chart-container {
+  width: 100%;
+  padding-right: 20px;
+  margin-top: 10px;
 } 

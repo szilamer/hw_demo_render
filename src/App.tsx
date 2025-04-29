@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import AppointmentSummary from './components/AppointmentSummary.tsx';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import EventForm from './components/EventForm';
-import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram } from 'react-icons/fa'; // Example icons
+import { FaUserMd, FaHeartbeat, FaLink, FaCalculator, FaChartLine, FaProjectDiagram, FaQuestionCircle } from 'react-icons/fa'; // Example icons
 
 // Környezeti változók beolvasása
 // const CHAT_WEBHOOK_URL = process.env.REACT_APP_CHAT_WEBHOOK_URL || '/webhook/webhook';  // Chat üzenetek kezelése
@@ -902,35 +902,40 @@ const App: React.FC = () => {
       title: 'DAS28',
       value: '6.0',
       unit: '',
-      status: 'critical' // Magas aktivitás
+      status: 'critical', // Magas aktivitás
+      description: 'A DAS28 (Disease Activity Score) a rheumatoid arthritis betegség aktivitását mérő pontszám. A 5.1 feletti érték magas betegség aktivitást jelez.'
     },
     {
       icon: '🔥',
       title: 'CRP',
       value: '51',
       unit: 'mg/L',
-      status: 'critical' // Magas gyulladás
+      status: 'critical', // Magas gyulladás
+      description: 'A C-reaktív protein (CRP) a szervezetben zajló gyulladásos folyamatokat jelző fehérje. A normál érték 5 mg/L alatt van.'
     },
     {
       icon: '⏳',
       title: 'Süllyedés (We)',
       value: '69',
       unit: 'mm/h',
-      status: 'critical' // Magas gyulladás
+      status: 'critical', // Magas gyulladás
+      description: 'A vörösvérsejt süllyedés (We) a vérben zajló gyulladásos folyamatokat jelző érték. A normál tartomány nőknél 0-20 mm/h között van.'
     },
     {
       icon: '🫀',
       title: 'Vérnyomás',
       value: '130/85', // Fiktív utolsó
       unit: 'mmHg',
-      status: 'normal' // Fiktív
+      status: 'normal', // Fiktív
+      description: 'A vérnyomás a szív által pumpált vér által az artériák falára kifejtett nyomás. A normál érték 120/80 mmHg körül van.'
     },
     {
       icon: '👣',
       title: 'Napi lépésszám',
       value: '3000', // Fiktív utolsó - CSÖKKENTVE
       unit: 'lépés',
-      status: 'normal' // Fiktív
+      status: 'normal', // Fiktív
+      description: 'A napi lépésszám a fizikai aktivitás egyik fontos mutatója. Az ajánlott napi minimum lépésszám 6000-8000 lépés.'
     }
   ], []);
 
@@ -1032,9 +1037,24 @@ const App: React.FC = () => {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              textAlign: 'center'
+              textAlign: 'center',
+              position: 'relative'
             }}
           >
+            <div 
+              className="info-icon" 
+              style={{ 
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                fontSize: '16px',
+                color: '#666',
+                cursor: 'help'
+              }}
+              title={metric.description || `${metric.title} részletes információk`}
+            >
+              <FaQuestionCircle />
+            </div>
             <div className="metric-icon" style={{ fontSize: '24px', marginBottom: '5px' }}>{metric.icon}</div>
             <div className="metric-title" style={{ fontWeight: 'bold', marginBottom: '5px' }}>{metric.title}</div>
             <div className="metric-value" style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '5px' }}>
@@ -1059,26 +1079,14 @@ const App: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="timeline-container" style={{ marginBottom: 60, position: 'relative' }}>
-        {selectedMetric && mainPanelView !== 'metric' ? (
-          <div style={{ 
-            position: 'absolute', 
-            left: 15, 
-            right: 15, 
-            top: 15, 
-            height: 180, 
-            background: 'white', 
-            borderRadius: 12, 
-            boxShadow: '0 4px 8px rgba(0,0,0,0.15)', 
-            padding: '20px', 
-            overflow: 'hidden', 
-            zIndex: 2 
-          }}>
-            <button className="button" style={{ position: 'absolute', right: 10, top: 10 }} onClick={showGraphView}>
+      <div className="timeline-container">
+        {selectedMetric ? (
+          <div className="timeline-chart" style={{ position: 'absolute', zIndex: 1000 }}>
+            <button className="button" onClick={showGraphView}>
               Vissza az eseményekhez
             </button>
-            <h3 style={{ marginBottom: 10, textAlign: 'center', fontWeight: 600, fontSize: 20 }}>{selectedMetric} időbeli alakulása</h3>
-            <div style={{ width: '100%', paddingRight: 20 }}>
+            <h3>{selectedMetric} időbeli alakulása</h3>
+            <div className="chart-container">
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart data={metricTimeSeries[selectedMetric as keyof typeof metricTimeSeries] || []}>
                   <CartesianGrid strokeDasharray="3 3" />

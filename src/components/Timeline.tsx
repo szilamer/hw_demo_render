@@ -292,14 +292,17 @@ const Timeline: React.FC<TimelineProps> = ({
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         margin: '5px auto',
         maxHeight: '220px',
-        position: 'relative'
+        position: 'relative',
+        overflow: 'visible'
       }}
     >
       <div style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        marginBottom: '10px'
+        marginBottom: '10px',
+        position: 'relative',
+        zIndex: 1
       }}>
         <h2 style={{ margin: 0, fontSize: '1.2em' }}>Események időrendi sorrendben</h2>
         <button 
@@ -311,13 +314,14 @@ const Timeline: React.FC<TimelineProps> = ({
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
-            fontSize: '0.9em'
+            fontSize: '0.9em',
+            zIndex: 2
           }}
         >
           + Új esemény
         </button>
       </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '10px', position: 'relative' }}>
         <div 
           ref={containerRef} 
           style={{ 
@@ -325,7 +329,8 @@ const Timeline: React.FC<TimelineProps> = ({
             flex: '1',
             position: 'relative',
             border: '1px solid #eee',
-            borderRadius: '4px'
+            borderRadius: '4px',
+            zIndex: 1
           }} 
         />
         {showDocumentList && selectedItemDocs.length > 0 && (
@@ -335,7 +340,8 @@ const Timeline: React.FC<TimelineProps> = ({
               padding: '10px',
               background: '#f5f5f5',
               borderRadius: '4px',
-              border: '1px solid #eee'
+              border: '1px solid #eee',
+              zIndex: 2
             }}
           >
             <div style={{ 
