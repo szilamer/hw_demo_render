@@ -50,7 +50,7 @@ h1, h2, h3, h4 {
 /* Timeline stílusok */
 .timeline-container {
   width: calc(100% - 30px);
-  height: 250px;
+  height: 300px; /* Decreased to 300px as requested */
   border: 1px solid #ccc;
   border-radius: 12px;
   padding: 15px;
@@ -65,7 +65,7 @@ h1, h2, h3, h4 {
 
 .timeline-inner {
   width: 100%;
-  height: 200px;
+  height: 200px; /* Visszaállítva az eredeti értékre */
   position: relative;
   z-index: 1;
 }

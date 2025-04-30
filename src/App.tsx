@@ -494,6 +494,7 @@ const App: React.FC = () => {
   // State to control the main panel view
   const [mainPanelView, setMainPanelView] = useState<MainPanelView>('graph'); 
   const [showSpecialEvent, setShowSpecialEvent] = useState<boolean>(false); // State for special event visibility
+  const summaryTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the timeout ID
 
   // Példa userId, reason, patientHistory (ezeket érdemes később dinamikusan kezelni)
   const userId = 'kovacs_istvan';
@@ -694,6 +695,22 @@ const App: React.FC = () => {
     console.log('selectedMetric:', selectedMetric);
   }, [showCalendar, selectedMetric]);
 
+  // Debug useEffect a showSummary állapot változásának követéséhez
+  useEffect(() => {
+    console.log('[DEBUG] showSummary state changed to:', showSummary);
+  }, [showSummary]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    // Cleanup function for the summary timeout
+    return () => {
+      if (summaryTimeoutRef.current) {
+        console.log('[DEBUG] Clearing summary timeout on unmount');
+        clearTimeout(summaryTimeoutRef.current);
+      }
+    };
+  }, []); // Empty dependency array ensures this runs only on mount and unmount
+
   const openAppointmentCalendar = async () => {
     console.log('openAppointmentCalendar called');
     const slots = generateDemoSlots();
@@ -707,9 +724,17 @@ const App: React.FC = () => {
   };
 
   const handleSlotSelect = async (slot: AppointmentEvent) => {
+    console.log('[DEBUG] handleSlotSelect called with slot:', slot);
     try {
       setCurrentSlot(slot);
       
+      // Clear any existing timeout before setting a new one
+      if (summaryTimeoutRef.current) {
+        console.log('[DEBUG] Clearing existing summary timeout');
+        clearTimeout(summaryTimeoutRef.current);
+        summaryTimeoutRef.current = null;
+      }
+
       // Bővített üzenet a felhasználónak
       chatboxRef.current?.addMessage(
         `Időpont kiválasztva: ${format(new Date(slot.start), 'yyyy-MM-dd HH:mm')}\nElőkészítem az anamnézis összefoglalót...`,
@@ -800,8 +825,18 @@ JAVASLATOK
 A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás stratégia felülvizsgálata és módosítása válhat szükségessé. A magas gyulladásos aktivitás és a funkcionális státusz romlása miatt sürgős beavatkozás indokolt.`;
 
       setAppointmentSummary(hardcodedSummary);
-      setShowCalendar(false);
-      setShowSummary(true);
+      setShowCalendar(false); // Calendar is hidden immediately
+      
+      console.log('[DEBUG] Setting 10-second timeout to show summary...');
+      // Store the timeout ID and ensure we're using window.setTimeout
+      const timeoutId = setTimeout(() => {
+        console.log('[DEBUG] Timeout finished. Setting showSummary to true.');
+        setShowSummary(true);
+        summaryTimeoutRef.current = null; // Clear the ref after execution
+      }, 10000) as unknown as NodeJS.Timeout;
+      
+      // Store the timeout ID in the ref
+      summaryTimeoutRef.current = timeoutId;
 
       // Ha van webhook URL, akkor még mindig megpróbáljuk elküldeni az adatokat
       if (CHAT_WEBHOOK_URL) {

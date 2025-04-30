@@ -77,7 +77,7 @@ const Timeline: React.FC<TimelineProps> = ({
 
       // Timeline opciók
       const options = {
-        height: '180px',
+        height: '250px',
         margin: {
           item: {
             horizontal: 15,
@@ -94,8 +94,8 @@ const Timeline: React.FC<TimelineProps> = ({
         stackSubgroups: true,
         verticalScroll: true,
         horizontalScroll: true,
-        maxHeight: '180px',
-        minHeight: 180,
+        maxHeight: '250px',
+        minHeight: 250,
         autoResize: true
       };
 
@@ -294,7 +294,7 @@ const Timeline: React.FC<TimelineProps> = ({
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         margin: '5px auto',
-        maxHeight: '220px',
+        maxHeight: '300px',
         position: 'relative',
         overflow: 'visible'
       }}
@@ -328,7 +328,7 @@ const Timeline: React.FC<TimelineProps> = ({
         <div 
           ref={containerRef} 
           style={{ 
-            height: '180px',
+            height: '250px',
             flex: '1',
             position: 'relative',
             border: '1px solid #eee',
