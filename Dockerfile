@@ -1,51 +1,30 @@
-# Stage 1: Build Stage
-FROM node:20-alpine AS builder
+# Use an official Node.js runtime as a parent image with specific platform
+FROM --platform=linux/amd64 node:18
 
-# Define build-time argument for the webhook URL
-ARG N8N_WEBHOOK_URL_ARG
-
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
+# Copy package.json and package-lock.json (or npm-shrinkwrap.json) to leverage Docker cache
+COPY package*.json ./
 
-# Install dependencies (using ci for cleaner install)
-# Make sure npm ci can run, might need python/make/g++ for some native modules
-# If ci fails, fallback to install
-RUN npm ci || npm install
+# Install build dependencies and project dependencies
+RUN apt-get update && apt-get install -y python3 make g++ && \
+    npm install && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the rest of the application code
+# Copy the rest of the application code to the working directory
+# Files listed in .dockerignore will be excluded
 COPY . .
 
-# Set the environment variable for the build process
-ENV REACT_APP_N8N_WEBHOOK_URL=$N8N_WEBHOOK_URL_ARG
+# Build the application
+RUN npx parcel build src/index.html
 
-# Run the build script (builds frontend and server)
-# This will now embed the REACT_APP_N8N_WEBHOOK_URL into the frontend code
-RUN npm run build
-
-# Stage 2: Production Stage
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy only necessary package files
-COPY package.json package-lock.json* ./
-
-# Install only production dependencies
-RUN npm install --omit=dev
-
-# Copy built artifacts from the builder stage
-# This includes the built frontend (dist/) and built server (dist/server/)
-COPY --from=builder /app/dist ./dist
-
-# Copy the actual documents from the builder stage to the location expected by the server
-COPY --from=builder /app/src/documents ./src/documents
-
-# Expose the port the app runs on
-# Default is 3001 from src/server/index.ts, but can be overridden by PORT env var
+# Make port 3001 available to the world outside this container
 EXPOSE 3001
 
-# Set the command to start the server
-# Uses the start script defined in package.json
-CMD ["npm", "start"] 
+# Install a simple HTTP server to serve the built files
+RUN npm install -g http-server
+
+# Serve the built files
+CMD ["http-server", "dist", "-p", "3001"] 

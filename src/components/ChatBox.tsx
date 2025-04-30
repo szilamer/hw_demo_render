@@ -108,7 +108,7 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="chat-input">
+      <div className="chat-input" style={{ display: 'flex', alignItems: 'stretch', gap: '10px' }}>
         <textarea
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
@@ -116,11 +116,13 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
           placeholder="Írj egy üzenetet..."
           rows={3}
           disabled={isLoading}
+          style={{ flexGrow: 1, resize: 'none', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
         />
         <button 
           className="button send-button" 
           onClick={handleSend}
           disabled={isLoading || inputValue.trim() === ''}
+          style={{ padding: '10px 15px' }}
         >
           {isLoading ? '...' : '📤 Küldés'}
         </button>

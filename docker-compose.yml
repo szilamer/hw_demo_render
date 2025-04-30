@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: hw-demo-app-dev # Konténer neve
+    ports:
+      - "3001:3001" # Helyi 3001 -> Konténer 3001
+    volumes:
+      # Csatolja a helyi src könyvtárat a konténeren belüli /app/src-hez
+      # Így a helyi kódváltozások azonnal megjelennek a konténerben
+      - ./src:/app/src 
+      # Kötet a node_modules számára, hogy a konténerben telepített maradjon
+      # és ne írja felül a helyi (ha van)
+      - /app/node_modules
+    environment:
+      # Szükséges lehet a hot reload megbízható működéséhez Docker kötetekkel
+      - CHOKIDAR_USEPOLLING=true
+      # Biztosítjuk, hogy a fejlesztői mód fusson (bár a CMD is ezt célozza)
+      - NODE_ENV=development 
+    # A Dockerfile-ban lévő CMD-t használja alapértelmezetten,
+    # ami már a parcel serve --port 3001-et indítja. 

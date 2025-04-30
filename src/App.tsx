@@ -458,7 +458,7 @@ const metricKeys = ['DAS28', 'CRP', 'Süllyedés (We)', 'Vérnyomás', 'Napi lé
 type MetricKey = typeof metricKeys[number];
 
 // Define possible views for the main panel
-type MainPanelView = 'graph' | 'metric' | 'connections' | 'financing';
+type MainPanelView = 'graph' | 'metric' | 'connections' | 'financing' | 'services';
 
 // Define the special event data
 const specialEventData: TimelineItem = {
@@ -472,6 +472,28 @@ const specialEventData: TimelineItem = {
   ],
   className: 'special-upload-event' // Class for special styling
 };
+
+// Adatstruktúra a javasolt szolgáltatásokhoz
+const suggestedServices = [
+  {
+    title: 'Gyógyszer Házhozszállítás',
+    description: 'Rendszeresen szedett gyógyszereit, beleértve a hűtést igénylő biológiai terápiát is, kényelmesen házhoz szállítjuk Önnek.',
+    buttonText: 'Részletek és Megrendelés',
+    color: '#1cc88a',
+  },
+  {
+    title: 'Egészségpénztári Támogatás',
+    description: 'Használja ki egészségpénztári megtakarítását gyógyszerekre, gyógyászati segédeszközökre vagy akár fizioterápiára. Segítünk az elszámolásban.',
+    buttonText: 'Tájékozódás és Ügyintézés',
+    color: '#f6c23e',
+  },
+  {
+    title: 'Online Orvosi Konzílium',
+    description: 'Konzultáljon reumatológus szakorvossal online, otthona kényelméből. Kérdéseire gyors választ kaphat, vagy megbeszélheti a kezelés további lépéseit.',
+    buttonText: 'Időpontfoglalás',
+    color: '#36b9cc',
+  },
+];
 
 const App: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
@@ -494,6 +516,7 @@ const App: React.FC = () => {
   // State to control the main panel view
   const [mainPanelView, setMainPanelView] = useState<MainPanelView>('graph'); 
   const [showSpecialEvent, setShowSpecialEvent] = useState<boolean>(false); // State for special event visibility
+  const [isAssistantTyping, setIsAssistantTyping] = useState<boolean>(false); // Új állapot a gépelésjelzőhöz
   const summaryTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the timeout ID
 
   // Példa userId, reason, patientHistory (ezeket érdemes később dinamikusan kezelni)
@@ -1139,6 +1162,9 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
       return;
     }
 
+    // Gépelésjelző indítása
+    setIsAssistantTyping(true);
+
     try {
       if (!CHAT_WEBHOOK_URL) {
         console.error('CHAT_WEBHOOK_URL is not defined. Cannot send metric selection.');
@@ -1146,6 +1172,8 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
           "Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).",
           'assistant'
         );
+        // Ne felejtsük el itt is leállítani a jelzőt, ha korán kilépünk
+        setIsAssistantTyping(false); 
         return;
       }
 
@@ -1170,7 +1198,7 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
               status: metricData.status,
               description: metricDescriptions[metric] || '',
               patient: {
-                firstName: "Julianna" // Using the patient's first name as requested
+                firstName: "Júlia" // Using the patient's first name as requested
               }
             },
             selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
@@ -1201,6 +1229,9 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
         'Hiba történt a mérőszám elemzése során. Kérem próbálja újra később.',
         'assistant'
       );
+    } finally {
+       // Gépelésjelző leállítása
+       setIsAssistantTyping(false);
     }
   };
 
@@ -1212,6 +1243,11 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
 
   const showFinancingPlanner = () => {
     setMainPanelView('financing');
+    setSelectedMetric(null); // Hide metric chart overlay
+  };
+
+  const showServicesView = () => {
+    setMainPanelView('services');
     setSelectedMetric(null); // Hide metric chart overlay
   };
 
@@ -1231,6 +1267,87 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+  };
+
+  // Új függvény a szolgáltatás érdeklődés kezelésére
+  const handleServiceInquiry = async (service: typeof suggestedServices[number]) => {
+    if (!CHAT_WEBHOOK_URL) {
+      console.error('CHAT_WEBHOOK_URL is not defined. Cannot send service inquiry.');
+      chatboxRef.current?.addMessage(
+        'Hiba: A chat funkció nincs konfigurálva (hiányzó Webhook URL).',
+        'assistant'
+      );
+      return;
+    }
+
+    console.log('Szolgáltatás érdeklődés küldése:', service.title);
+    // Visszaállítva: Azonnali üzenet a chatboxba a felhasználó nevében
+    chatboxRef.current?.addMessage(`A "${service.title}" szolgáltatásról érdeklődöm...`, 'user'); 
+
+    // Gépelésjelző indítása (állapot változóval)
+    setIsAssistantTyping(true);
+
+    try {
+      const diagnosis = patientNodes.find(n => n.type === 'disease')?.label || 'Rheumatoid Arthritis';
+      const patientName = "Júlia"; // Konstans vagy dinamikus forrásból
+
+      // Kontextus előkészítése
+      const requestBody = {
+        action: 'service_inquiry', // Jelzés az n8n-nek
+        // Új: Kombinált üzenet a prompttal
+        message: `Érdeklődöm a "${service.title}" szolgáltatás iránt. Kérlek, magyarázd el nekem (${patientName}-nak), hogy az én állapotom (diagnózis: ${diagnosis}) mellett miért lenne ez hasznos.`, 
+        // Eltávolítva: prompt_instructions
+        service: { // A strukturált adatokat meghagyjuk
+          title: service.title,
+          description: service.description,
+        },
+        timestamp: Date.now(),
+        context: {
+          patientName: patientName, 
+          selectedMetric: selectedMetric ? healthMetrics.find(m => m.title === selectedMetric) : null,
+          selectedEvent: selectedEvent ? events.find(e => e.id === selectedEvent) : null,
+          selectedNode: selectedNode ? patientNodes.find(n => n.id === selectedNode) : null,
+          visibleNodes: visibleNodes,
+          visibleEdges: visibleEdges
+        }
+      };
+
+      console.log('Küldés a webhooknak (service inquiry):', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(CHAT_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json' // Fontos lehet az n8n számára
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Webhook hiba: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Webhook válasz (service inquiry):', data);
+
+      const reply = data.response || data.message || data.output || null;
+      if (reply) {
+        chatboxRef.current?.addMessage(reply, 'assistant');
+      } else {
+        chatboxRef.current?.addMessage('A szolgáltatásról jelenleg nem tudok információt adni.', 'assistant');
+        console.log('Nem érkezett érdemi válasz a szolgáltatás érdeklődésre.');
+      }
+
+    } catch (error) {
+      console.error('Hiba a szolgáltatás érdeklődés küldése során:', error);
+      chatboxRef.current?.addMessage(
+        `Hiba történt az érdeklődés feldolgozása során: ${error instanceof Error ? error.message : String(error)}`,
+        'assistant'
+      );
+    } finally {
+      // Gépelésjelző leállítása (állapot változóval)
+      setIsAssistantTyping(false);
+    }
   };
 
   return (
@@ -1287,8 +1404,8 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
         flexWrap: 'wrap', 
         gap: '10px', 
         justifyContent: 'space-between',
-        padding: '15px',
-        margin: '0 0 20px 0'
+        padding: '0 15px 15px 15px', // Felső padding eltávolítva
+        margin: '10px 0 10px 0' // Felső margó hozzáadva
       }}>
         {healthMetrics.map((metric, index) => (
           <div 
@@ -1348,7 +1465,8 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
           </div>
         ))}
       </div>
-      <div className="timeline-container">
+      {/* timeline-container stílus hozzáadva */}
+      <div className="timeline-container" style={{ marginBottom: '10px' }}>
         {selectedMetric ? (
           <div className="timeline-chart" style={{ position: 'absolute', zIndex: 1000 }}>
             <button className="button" onClick={showGraphView}>
@@ -1514,9 +1632,151 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
           )}
 
           {mainPanelView === 'financing' && (
-            <div style={{ padding: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+            <div style={{ padding: 20, height: '100%', display: 'flex', flexDirection: 'column' }}> {/* Outer container styling */} 
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}> {/* Header */} 
                 <h2 style={{ color: '#4e73df', margin: 0 }}>Betegségfinanszírozás tervező</h2>
+                <button 
+                  onClick={showGraphView}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    cursor: 'pointer', 
+                    padding: '8px', 
+                    fontSize: '20px',
+                    color: '#666',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#eee'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                > 
+                  ✕
+                </button>
+              </div>
+              <p style={{ flexShrink: 0, marginBottom: 0 }}>A lenti táblázat a 2023-2025 időszakra vonatkozó várható egészségügyi kiadásokat és támogatásokat mutatja.</p> {/* Added flexShrink, removed default margin */} 
+              
+              {/* Content container with scrolling */}
+              <div style={{ overflowY: 'auto', flexGrow: 1, marginTop: 20 }}> 
+                <div style={{ background: 'white', padding: 20, borderRadius: 8, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}> {/* Inner white box */} 
+                  {/* A fehér doboz TELJES EREDETI TARTALMA itt van */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15 }}>
+                    <div>
+                      <h3 style={{ marginBottom: 10 }}>Kovács Julianna RA kezelési terve</h3>
+                      <div style={{ fontSize: 14, color: '#666' }}>Utolsó frissítés: 2023. december 10.</div>
+                    </div>
+                    <button style={{ padding: '8px 16px', background: '#4e73df', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+                      PDF Exportálás
+                    </button>
+                  </div>
+                  
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                      <thead>
+                        <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                          <th style={{ padding: 12, textAlign: 'left' }}>Tétel megnevezése</th>
+                          <th style={{ padding: 12, textAlign: 'right' }}>Éves költség (Ft)</th>
+                          <th style={{ padding: 12, textAlign: 'right' }}>TB támogatás (%)</th>
+                          <th style={{ padding: 12, textAlign: 'right' }}>Önrész (Ft)</th>
+                          <th style={{ padding: 12, textAlign: 'center' }}>Státusz</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid #dee2e6' }}>
+                          <td style={{ padding: 12 }}><strong>Biológiai terápia</strong> (Adalimumab)</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>3,840,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>100%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>0</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
+                          </td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #dee2e6', background: '#fafafa' }}>
+                          <td style={{ padding: 12 }}><strong>Alap gyógyszerek</strong> (Methotrexate + Folsav)</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>120,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>90%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>12,000</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
+                          </td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #dee2e6' }}>
+                          <td style={{ padding: 12 }}><strong>Fizioterápia</strong> (évi 10 alkalom)</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>150,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>70%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>45,000</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 8px', background: '#fff8e1', color: '#f57c00', borderRadius: 4, fontSize: 12 }}>Előjegyzés alatt</span>
+                          </td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #dee2e6', background: '#fafafa' }}>
+                          <td style={{ padding: 12 }}><strong>Gyógyászati segédeszközök</strong></td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>80,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>50%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>40,000</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 8px', background: '#ffebee', color: '#d32f2f', borderRadius: 4, fontSize: 12 }}>Igénylés szükséges</span>
+                          </td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #dee2e6' }}>
+                          <td style={{ padding: 12 }}><strong>Kontroll vizsgálatok</strong> (negyedévente)</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>120,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>100%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>0</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr style={{ background: '#f1f5fd', borderTop: '2px solid #dee2e6', fontWeight: 'bold' }}>
+                          <td style={{ padding: 12 }}>Összesen</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>4,310,000</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>97%</td>
+                          <td style={{ padding: 12, textAlign: 'right' }}>97,000</td>
+                          <td style={{ padding: 12, textAlign: 'center' }}></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  
+                  <div style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ background: '#f1f5fd', padding: 15, borderRadius: 8, width: '48%' }}>
+                      <h4 style={{ marginBottom: 10, color: '#4e73df' }}>Finanszírozási tippek</h4>
+                      <ul style={{ paddingLeft: 20, marginBottom: 0, fontSize: 14 }}>
+                        <li style={{ marginBottom: 8 }}>Éves gyógyszer keretének 90%-a még rendelkezésre áll</li>
+                        <li style={{ marginBottom: 8 }}>Gyógyászati segédeszközök támogatása igényelhető</li>
+                        <li style={{ marginBottom: 0 }}>Nem TB támogatott kezelések adókedvezménye: 63,500 Ft</li>
+                      </ul>
+                    </div>
+                    
+                    <div style={{ background: '#fff8e1', padding: 15, borderRadius: 8, width: '48%' }}>
+                      <h4 style={{ marginBottom: 10, color: '#f57c00' }}>Következő lépések</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, fontSize: 14 }}>
+                        <input type="checkbox" id="step1" style={{ marginRight: 8 }} />
+                        <label htmlFor="step1">Gyógyászati segédeszköz igénylés beadása</label>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, fontSize: 14 }}>
+                        <input type="checkbox" id="step2" style={{ marginRight: 8 }} />
+                        <label htmlFor="step2">Fizioterápia előjegyzés megerősítése</label>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
+                        <input type="checkbox" id="step3" style={{ marginRight: 8 }} />
+                        <label htmlFor="step3">Adókedvezmény dokumentumok gyűjtése</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {mainPanelView === 'services' && (
+            <div style={{ padding: 20, height: '100%', display: 'flex', flexDirection: 'column' }}> {/* Outer container styling */} 
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexShrink: 0 }}> {/* Header */} 
+                <h2 style={{ color: '#4e73df', margin: 0 }}>Csatolt Szolgáltatások (RA)</h2>
                 <button 
                   onClick={showGraphView}
                   style={{ 
@@ -1538,119 +1798,46 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
                   ✕
                 </button>
               </div>
-              <p>A lenti táblázat a 2023-2025 időszakra vonatkozó várható egészségügyi kiadásokat és támogatásokat mutatja.</p>
+              <p style={{ flexShrink: 0 }}>Az Ön állapota (Rheumatoid Arthritis) alapján az alábbi szolgáltatásokat javasoljuk figyelmébe:</p> {/* Added flexShrink */} 
               
-              <div style={{ background: 'white', padding: 20, borderRadius: 8, boxShadow: '0 4px 8px rgba(0,0,0,0.1)', marginTop: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 15 }}>
-                  <div>
-                    <h3 style={{ marginBottom: 10 }}>Kovács Julianna RA kezelési terve</h3>
-                    <div style={{ fontSize: 14, color: '#666' }}>Utolsó frissítés: 2023. december 10.</div>
+              <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: 20, overflowY: 'auto', flexGrow: 1 }}> {/* Service cards container - added overflowY and flexGrow */} 
+                {suggestedServices.map((service, index) => (
+                  <div 
+                    key={index} 
+                    style={{ 
+                      flex: '1 1 30%', 
+                      minWidth: '250px', 
+                      background: 'white', 
+                      padding: 20, 
+                      borderRadius: 8, 
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '10px' 
+                    }}
+                  >
+                    <h3 style={{ color: service.color, margin: 0 }}>{service.title}</h3>
+                    <p style={{ fontSize: 14, color: '#666', flexGrow: 1 }}>{service.description}</p>
+                    <button 
+                      style={{ 
+                        padding: '8px 16px', 
+                        background: service.color, 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: 4, 
+                        cursor: 'pointer', 
+                        alignSelf: 'flex-start' 
+                      }}
+                      onClick={() => handleServiceInquiry(service)} // Új onClick handler
+                    >
+                      {service.buttonText}
+                    </button>
                   </div>
-                  <button style={{ padding: '8px 16px', background: '#4e73df', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-                    PDF Exportálás
-                  </button>
-                </div>
-                
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                    <thead>
-                      <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-                        <th style={{ padding: 12, textAlign: 'left' }}>Tétel megnevezése</th>
-                        <th style={{ padding: 12, textAlign: 'right' }}>Éves költség (Ft)</th>
-                        <th style={{ padding: 12, textAlign: 'right' }}>TB támogatás (%)</th>
-                        <th style={{ padding: 12, textAlign: 'right' }}>Önrész (Ft)</th>
-                        <th style={{ padding: 12, textAlign: 'center' }}>Státusz</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ borderBottom: '1px solid #dee2e6' }}>
-                        <td style={{ padding: 12 }}><strong>Biológiai terápia</strong> (Adalimumab)</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>3,840,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>100%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>0</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #dee2e6', background: '#fafafa' }}>
-                        <td style={{ padding: 12 }}><strong>Alap gyógyszerek</strong> (Methotrexate + Folsav)</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>120,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>90%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>12,000</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #dee2e6' }}>
-                        <td style={{ padding: 12 }}><strong>Fizioterápia</strong> (évi 10 alkalom)</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>150,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>70%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>45,000</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#fff8e1', color: '#f57c00', borderRadius: 4, fontSize: 12 }}>Előjegyzés alatt</span>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #dee2e6', background: '#fafafa' }}>
-                        <td style={{ padding: 12 }}><strong>Gyógyászati segédeszközök</strong></td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>80,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>50%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>40,000</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#ffebee', color: '#d32f2f', borderRadius: 4, fontSize: 12 }}>Igénylés szükséges</span>
-                        </td>
-                      </tr>
-                      <tr style={{ borderBottom: '1px solid #dee2e6' }}>
-                        <td style={{ padding: 12 }}><strong>Kontroll vizsgálatok</strong> (negyedévente)</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>120,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>100%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>0</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e8f5e9', color: '#388e3c', borderRadius: 4, fontSize: 12 }}>Jóváhagyva</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                    <tfoot>
-                      <tr style={{ background: '#f1f5fd', borderTop: '2px solid #dee2e6', fontWeight: 'bold' }}>
-                        <td style={{ padding: 12 }}>Összesen</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>4,310,000</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>97%</td>
-                        <td style={{ padding: 12, textAlign: 'right' }}>97,000</td>
-                        <td style={{ padding: 12, textAlign: 'center' }}></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                
-                <div style={{ marginTop: 20, display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ background: '#f1f5fd', padding: 15, borderRadius: 8, width: '48%' }}>
-                    <h4 style={{ marginBottom: 10, color: '#4e73df' }}>Finanszírozási tippek</h4>
-                    <ul style={{ paddingLeft: 20, marginBottom: 0, fontSize: 14 }}>
-                      <li style={{ marginBottom: 8 }}>Éves gyógyszer keretének 90%-a még rendelkezésre áll</li>
-                      <li style={{ marginBottom: 8 }}>Gyógyászati segédeszközök támogatása igényelhető</li>
-                      <li style={{ marginBottom: 0 }}>Nem TB támogatott kezelések adókedvezménye: 63,500 Ft</li>
-                    </ul>
-                  </div>
-                  
-                  <div style={{ background: '#fff8e1', padding: 15, borderRadius: 8, width: '48%' }}>
-                    <h4 style={{ marginBottom: 10, color: '#f57c00' }}>Következő lépések</h4>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, fontSize: 14 }}>
-                      <input type="checkbox" id="step1" style={{ marginRight: 8 }} />
-                      <label htmlFor="step1">Gyógyászati segédeszköz igénylés beadása</label>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, fontSize: 14 }}>
-                      <input type="checkbox" id="step2" style={{ marginRight: 8 }} />
-                      <label htmlFor="step2">Fizioterápia előjegyzés megerősítése</label>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', fontSize: 14 }}>
-                      <input type="checkbox" id="step3" style={{ marginRight: 8 }} />
-                      <label htmlFor="step3">Következő negyedéves felülvizsgálat időpontfoglalása</label>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           )}
-          
+
           {/* Naptár megjelenítése (Overlay struktúrával) */}
           {showCalendar && !showSummary && (
             <div className="overlay-base calendar-container" style={{
@@ -1807,6 +1994,7 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
                 selectedEvent={selectedEvent}
                 selectedNode={selectedNode}
                 onSendMessage={handleSendMessage}
+                isTyping={isAssistantTyping} // Hozzáadott prop
               />
             ) : (
               <div className="voice-mode">
@@ -1837,8 +2025,8 @@ A beteg állapota az utóbbi időszakban romlott, a jelenlegi terápiás straté
         <button className="button" onClick={showDataConnections}>
           <FaLink style={{ marginRight: 5 }}/> I.E.R. adatkapcsolatok kezelése 
         </button>
-        <button className="button" disabled>
-          Csatolt szolgáltatások
+        <button className="button" onClick={showServicesView}>
+          <FaLink style={{ marginRight: 5 }}/> Csatolt szolgáltatások
         </button>
         <button className="button" onClick={showFinancingPlanner}>
           <FaCalculator style={{ marginRight: 5 }}/> Betegségfinanszírozás tervező

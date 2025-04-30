@@ -1,6 +1,6 @@
 .timeline-container {
   width: 100%;
-  height: 300px; /* Fix magasság beállítása */
+  height: 180px; /* Fix magasság tovább csökkentve 20px-szel */
   position: relative;
   overflow: hidden;
   border: 1px solid #ddd;
@@ -30,7 +30,7 @@
   flex: 1;
   overflow: auto;
   position: relative;
-  height: calc(100% - 60px); /* Header magasságának levonása */
+  height: calc(100% - 50px); /* Header magassága (50px) levonva */
 }
 
 /* Timeline konténer stílusok */

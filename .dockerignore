@@ -1,0 +1,12 @@
+node_modules
+.git
+.parcel-cache
+dist
+build
+.env
+npm-debug.log
+*.log
+Dockerfile
+.dockerignore
+docker-compose.yml
+hw-demo-app-image.tar 

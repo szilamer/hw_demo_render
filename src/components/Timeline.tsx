@@ -77,10 +77,9 @@ const Timeline: React.FC<TimelineProps> = ({
 
       // Timeline opciók
       const options = {
-        height: '250px',
         margin: {
           item: {
-            horizontal: 15,
+            horizontal: 5,
             vertical: 8
           },
           axis: 8
@@ -94,8 +93,6 @@ const Timeline: React.FC<TimelineProps> = ({
         stackSubgroups: true,
         verticalScroll: true,
         horizontalScroll: true,
-        maxHeight: '250px',
-        minHeight: 250,
         autoResize: true
       };
 
@@ -294,9 +291,11 @@ const Timeline: React.FC<TimelineProps> = ({
         borderRadius: '8px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         margin: '5px auto',
-        maxHeight: '300px',
         position: 'relative',
-        overflow: 'visible'
+        overflow: 'hidden',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
       <div style={{ 
@@ -305,7 +304,8 @@ const Timeline: React.FC<TimelineProps> = ({
         alignItems: 'center',
         marginBottom: '10px',
         position: 'relative',
-        zIndex: 1
+        zIndex: 1,
+        flexShrink: 0
       }}>
         <h2 style={{ margin: 0, fontSize: '1.2em' }}>Események időrendi sorrendben</h2>
         <button 
@@ -324,11 +324,10 @@ const Timeline: React.FC<TimelineProps> = ({
           + Új esemény
         </button>
       </div>
-      <div style={{ display: 'flex', gap: '10px', position: 'relative' }}>
+      <div style={{ display: 'flex', gap: '10px', position: 'relative', flexGrow: 1, overflow: 'hidden' }}>
         <div 
           ref={containerRef} 
           style={{ 
-            height: '250px',
             flex: '1',
             position: 'relative',
             border: '1px solid #eee',

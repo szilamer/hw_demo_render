@@ -34,7 +34,7 @@ body {
   gap: 15px;
   padding: 15px;
   overflow-x: auto;
-  margin: 20px 0;
+  margin: 10px 0;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -138,7 +138,6 @@ body {
 /* Timeline stílusok */
 .timeline-container {
   width: calc(100% - 30px);
-  height: 250px;
   border: 1px solid #ccc;
   border-radius: 12px;
   padding: 15px;
@@ -147,7 +146,7 @@ body {
   box-sizing: border-box;
   margin: 0 15px;
   position: relative;
-  margin-bottom: 60px;
+  margin-bottom: 10px;
 }
 
 .timeline-inner {
