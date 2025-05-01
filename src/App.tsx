@@ -463,11 +463,10 @@ type MainPanelView = 'graph' | 'metric' | 'connections' | 'financing' | 'service
 // Define the special event data
 const specialEventData: TimelineItem = {
   id: 'special_upload_event_2020_04_28',
-  content: 'Feltöltött Dokumentumok (Labor+Kórlap)',
+  content: 'Feltöltött Dokumentumok (Labor)',
   start: new Date('2020-04-28'), // Specific date
   documents: [
-    // Use existing document URLs instead of assumed ones
-    { id: 'doc_special_korlap', title: 'Kórlap 2020-04-23 (Referencia)', url: 'kj_korlap_2020_04_23.pdf', type: 'pdf' }, 
+    // Only include the lab document, remove the kj document
     { id: 'doc_special_labor', title: 'Laborlelet 2020-04-23 (Referencia)', url: 'lab_20200423_cb.pdf', type: 'pdf' } 
   ],
   className: 'special-upload-event' // Class for special styling

@@ -9,6 +9,7 @@ interface ChatBoxProps {
   selectedEvent: string | null;
   selectedNode: string | null;
   onSendMessage: (message: string, addResponse: (response: string) => void) => Promise<void>;
+  isTyping?: boolean;
 }
 
 export interface ChatBoxHandle {
@@ -16,7 +17,7 @@ export interface ChatBoxHandle {
   getHistory: () => Message[];
 }
 
-const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, selectedNode, onSendMessage }, ref) => {
+const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, selectedNode, onSendMessage, isTyping = false }, ref) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -95,7 +96,7 @@ const ChatBox = forwardRef<ChatBoxHandle, ChatBoxProps>(({ selectedEvent, select
             </div>
           </div>
         ))}
-        {isLoading && (
+        {(isLoading || isTyping) && (
           <div className="message assistant-message">
             <div className="message-content">
               <div className="loading">
